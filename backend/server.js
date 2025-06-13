@@ -19,6 +19,7 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS plants (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId TEXT NOT NULL,
       sciName TEXT NOT NULL,
       commonName TEXT,
       personalName TEXT,
@@ -49,6 +50,7 @@ const upload = multer({ storage });
 // POST /plants actualizado
 app.post("/plants", upload.single("photo"), (req, res) => {
   const {
+    userId, // <-- nuevo campo
     sciName,
     commonName,
     personalName,
@@ -60,13 +62,14 @@ app.post("/plants", upload.single("photo"), (req, res) => {
     date
   } = req.body;
   const photoPath = req.file ? `/uploads/${req.file.filename}` : null;
-  if (!sciName || !photoPath) return res.status(400).json({ error: "Faltan datos" });
+  if (!userId || !sciName || !photoPath) return res.status(400).json({ error: "Faltan datos" });
 
   db.run(
     `INSERT INTO plants 
-      (sciName, commonName, personalName, location, watering, light, drainage, notes, photoPath, date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (userId, sciName, commonName, personalName, location, watering, light, drainage, notes, photoPath, date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
+      userId,
       sciName,
       commonName,
       personalName,
@@ -85,9 +88,11 @@ app.post("/plants", upload.single("photo"), (req, res) => {
   );
 });
 
-// GET /plants
+// GET /plants actualizado para filtrar por usuario
 app.get("/plants", (req, res) => {
-  db.all("SELECT * FROM plants", [], (err, rows) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: "Falta userId" });
+  db.all("SELECT * FROM plants WHERE userId = ?", [userId], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext"; // <--- Agrega esto
 
 export default function PlantSaveForm({ sciName, commonName, photo, onSave, onCancel, open }) {
+  const { user } = useAuth(); // <--- Agrega esto
   const [personalName, setPersonalName] = useState("");
   const [location, setLocation] = useState("");
   const [watering, setWatering] = useState("");
@@ -27,6 +29,9 @@ export default function PlantSaveForm({ sciName, commonName, photo, onSave, onCa
     formData.append("notes", notes);
     formData.append("photo", photo);
     formData.append("date", new Date().toISOString());
+    if (user && user.uid) {
+      formData.append("userId", user.uid); // <--- Agrega el UID aquí
+    }
 
     await onSave(formData);
   }

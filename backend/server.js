@@ -4,6 +4,13 @@ const multer = require("multer");
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const fs = require("fs");
+const admin = require("firebase-admin");
+
+// Inicializar Firebase Admin SDK
+const serviceAccount = require("./serviceAccountKey.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
 const app = express();
 const PORT = 3001;
@@ -11,6 +18,24 @@ const PORT = 3001;
 // Middleware
 app.use(cors());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Middleware de autenticación
+const authenticateToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).send('Unauthorized: No token provided');
+  }
+
+  const idToken = authHeader.split('Bearer ')[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.user = decodedToken; // Añade la info del usuario (incluyendo uid) a la request
+    next();
+  } catch (error) {
+    console.error('Error verifying Firebase ID token:', error);
+    res.status(403).json({ error: 'Forbidden: Invalid or expired token.', code: error.code });
+  }
+};
 
 // SQLite setup
 const dbPath = path.join(__dirname, "plants.db");
@@ -48,9 +73,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // POST /plants actualizado
-app.post("/plants", upload.single("photo"), (req, res) => {
+app.post("/plants", authenticateToken, upload.single("photo"), (req, res) => {
   const {
-    userId, // <-- nuevo campo
     sciName,
     commonName,
     personalName,
@@ -61,7 +85,8 @@ app.post("/plants", upload.single("photo"), (req, res) => {
     notes,
     date
   } = req.body;
-  const photoPath = req.file ? `/uploads/${req.file.filename}` : null;
+  const userId = req.user.uid; // <-- Usar el UID del token verificado
+  const photoPath = req.file ? req.file.filename : null;
   if (!userId || !sciName || !photoPath) return res.status(400).json({ error: "Faltan datos" });
 
   db.run(
@@ -89,11 +114,14 @@ app.post("/plants", upload.single("photo"), (req, res) => {
 });
 
 // GET /plants actualizado para filtrar por usuario
-app.get("/plants", (req, res) => {
-  const { userId } = req.query;
+app.get("/plants", authenticateToken, (req, res) => {
+  const userId = req.user.uid; // <-- Usar el UID del token verificado
   if (!userId) return res.status(400).json({ error: "Falta userId" });
   db.all("SELECT * FROM plants WHERE userId = ?", [userId], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+    if (err) {
+      console.error('Database error fetching plants:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
     res.json(rows);
   });
 });

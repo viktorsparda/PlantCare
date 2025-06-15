@@ -93,8 +93,9 @@ export default function PlantSaveForm({ sciName, commonName, photo, onCancel }) 
         />
       </div>
       <div>
-        <label className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Nombre personal</label>
+        <label htmlFor="personalName" className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Nombre personal</label>
         <input
+          id="personalName"
           value={personalName}
           onChange={e => setPersonalName(e.target.value)}
           className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 shadow"
@@ -103,8 +104,9 @@ export default function PlantSaveForm({ sciName, commonName, photo, onCancel }) 
         />
       </div>
       <div>
-        <label className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Ubicación</label>
+        <label htmlFor="location" className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Ubicación</label>
         <input
+          id="location"
           value={location}
           onChange={e => setLocation(e.target.value)}
           className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 shadow"
@@ -112,8 +114,9 @@ export default function PlantSaveForm({ sciName, commonName, photo, onCancel }) 
         />
       </div>
       <div>
-        <label className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Frecuencia de riego</label>
+        <label htmlFor="watering" className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Frecuencia de riego</label>
         <select
+          id="watering"
           value={watering}
           onChange={e => setWatering(e.target.value)}
           className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 shadow"
@@ -126,8 +129,9 @@ export default function PlantSaveForm({ sciName, commonName, photo, onCancel }) 
         </select>
       </div>
       <div>
-        <label className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Luz</label>
+        <label htmlFor="light" className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Luz</label>
         <select
+          id="light"
           value={light}
           onChange={e => setLight(e.target.value)}
           className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 shadow"
@@ -139,8 +143,9 @@ export default function PlantSaveForm({ sciName, commonName, photo, onCancel }) 
         </select>
       </div>
       <div>
-        <label className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">¿Maceta con drenaje?</label>
+        <label htmlFor="drainage" className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">¿Maceta con drenaje?</label>
         <select
+          id="drainage"
           value={drainage}
           onChange={e => setDrainage(e.target.value)}
           className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 shadow"
@@ -151,8 +156,9 @@ export default function PlantSaveForm({ sciName, commonName, photo, onCancel }) 
         </select>
       </div>
       <div>
-        <label className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Notas personales (opcional)</label>
+        <label htmlFor="notes" className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200">Notas personales (opcional)</label>
         <textarea
+          id="notes"
           value={notes}
           onChange={e => setNotes(e.target.value)}
           className="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 min-h-[60px] bg-white/80 dark:bg-gray-800/80 text-gray-800 dark:text-gray-100 shadow"

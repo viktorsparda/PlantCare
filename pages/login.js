@@ -37,21 +37,21 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
-    setLoading(true);
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      setLoading(false);
       return;
     }
 
+    setLoading(true);
+
     try {
-      await signInWithEmailAndPassword(
+      const userCredential = await signInWithEmailAndPassword(
         auth,
         form.email,
         form.password
       );
-      const user = auth.currentUser;
+      const user = userCredential.user;
       if (user) {
         await user.reload(); // Forzar la recarga de los datos del usuario
         if (user.emailVerified) {
@@ -66,10 +66,9 @@ export default function Login() {
                   className="mt-2 text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
                   onClick={async () => {
                     try {
-                      if (auth.currentUser) {
-                        await sendEmailVerification(auth.currentUser);
-                        toast.success("Correo de verificación reenviado.", { id: t.id });
-                      }
+                      // Usar el objeto 'user' del ámbito superior que ya está definido
+                      await sendEmailVerification(user);
+                      toast.success("Correo de verificación reenviado.", { id: t.id });
                     } catch (err) {
                       toast.error("Error al reenviar el correo.", { id: t.id });
                     }
@@ -127,7 +126,6 @@ export default function Login() {
           type="email"
           name="email"
           placeholder="Correo electrónico"
-          required
           value={form.email}
           onChange={handleChange}
           className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black dark:text-white placeholder-black dark:placeholder-gray-300 bg-white dark:bg-gray-900 ${
@@ -135,7 +133,7 @@ export default function Login() {
           }`}
         />
         {errors.email && (
-          <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          <p data-testid="email-error" className="text-red-500 text-sm mt-1">{errors.email}</p>
         )}
         <label
           className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200 mt-1"
@@ -149,7 +147,6 @@ export default function Login() {
             type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Contraseña"
-            required
             value={form.password}
             onChange={handleChange}
             className={`w-full px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black dark:text-white placeholder-black dark:placeholder-gray-300 bg-white dark:bg-gray-900 ${errors.password ? "border-red-500" : ""}`}
@@ -173,7 +170,7 @@ export default function Login() {
           </button>
         </div>
         {errors.password && (
-          <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          <p data-testid="password-error" className="text-red-500 text-sm mt-1">{errors.password}</p>
         )}
         <div className="text-sm text-right">
           <Link href="/forgot-password" className="font-medium text-green-600 hover:text-green-500 dark:text-green-400 dark:hover:text-green-300">

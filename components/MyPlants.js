@@ -43,8 +43,16 @@ export default function MyPlants() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="relative bg-white/70 dark:bg-gray-900/80 backdrop-blur-lg border border-green-200 dark:border-green-700 rounded-2xl shadow-lg overflow-hidden animate-pulse">
+            <div className="h-48 w-full bg-gray-300 dark:bg-gray-700"></div>
+            <div className="p-5">
+              <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
+              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -75,7 +83,7 @@ export default function MyPlants() {
       {plants.map((plant) => (
         <div
           key={plant.id}
-          className="relative bg-white/70 dark:bg-gray-900/80 backdrop-blur-lg border border-green-200 dark:border-green-700 rounded-2xl shadow-2xl hover:shadow-green-600/30 transition-all flex flex-col group overflow-hidden"
+          className="relative bg-white/70 dark:bg-gray-900/80 backdrop-blur-lg border border-green-200 dark:border-green-700 rounded-2xl shadow-2xl hover:shadow-green-600/30 transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-1 flex flex-col group overflow-hidden"
         >
           {/* Menú contextual (tres puntos) */}
           <div className="absolute top-3 right-3 z-20">

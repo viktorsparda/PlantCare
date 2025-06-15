@@ -49,21 +49,21 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
-    setLoading(true);
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      setLoading(false);
       return;
     }
 
+    setLoading(true);
+
     try {
-      await createUserWithEmailAndPassword(
+      const res = await createUserWithEmailAndPassword(
         auth,
         form.email,
         form.password
       );
-      await sendEmailVerification(auth.currentUser);
+      await sendEmailVerification(res.user);
       setIsSuccess(true);
       toast.success(
         (t) => (
@@ -127,7 +127,6 @@ export default function Register() {
           type="email"
           name="email"
           placeholder="Correo electrónico"
-          required
           value={form.email}
           onChange={handleChange}
           className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black dark:text-white placeholder-black dark:placeholder-gray-300 bg-white dark:bg-gray-900 ${
@@ -135,7 +134,7 @@ export default function Register() {
           }`}
         />
         {errors.email && (
-          <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          <p data-testid="email-error" className="text-red-500 text-sm mt-1">{errors.email}</p>
         )}
         <label
           className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200 mt-1"
@@ -149,7 +148,6 @@ export default function Register() {
             type={showPassword ? "text" : "password"}
             name="password"
             placeholder="Contraseña"
-            required
             value={form.password}
             onChange={handleChange}
             className={`w-full px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black dark:text-white placeholder-black dark:placeholder-gray-300 bg-white dark:bg-gray-900 ${
@@ -181,7 +179,7 @@ export default function Register() {
           <li>• Al menos un símbolo especial</li>
         </ul>
         {errors.password && (
-          <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          <p data-testid="password-error" className="text-red-500 text-sm mt-1">{errors.password}</p>
         )}
         
         <button

@@ -8,28 +8,30 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  // const [showSaveForm, setShowSaveForm] = useState(false);
-  // const [selectedPlant, setSelectedPlant] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     setImage(file);
     setPreviewUrl(URL.createObjectURL(file));
     setResult(null);
-    if (file) {
-      identifyPlant(file);
-    }
+    setError(null);
+    identifyPlant(file);
   };
 
-  // Nueva función para identificar la planta automáticamente
   const identifyPlant = async (file) => {
     if (!file) return;
     const formData = new FormData();
     formData.append("images", file);
     formData.append("organs", "auto");
+
+    setLoading(true);
+    setResult(null);
+    setError(null);
+
     try {
-      setLoading(true);
-      setResult(null);
       const response = await fetch(
         `https://my-api.plantnet.org/v2/identify/all?api-key=2b10mNaQbuzL8nUYK8F3SBoVO`,
         {
@@ -37,38 +39,40 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
           body: formData,
         }
       );
+
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error HTTP ${response.status}: ${errorText}`);
+        console.error(`Error HTTP ${response.status}: ${await response.text()}`);
+        if (response.status === 400) {
+          throw new Error("El archivo de imagen es inválido o está dañado. Por favor, elige otro archivo.");
+        }
+        throw new Error("No se pudo procesar la imagen. Asegúrate de que es una foto clara de una planta e inténtalo de nuevo.");
       }
+
       const data = await response.json();
+
       if (!data.results || data.results.length === 0) {
-        alert("No se encontraron resultados. Intenta con otra imagen.");
+        setError("No se encontraron resultados. Intenta con otra imagen.");
       } else {
         setResult(data.results || []);
       }
     } catch (err) {
-      alert(`Ocurrió un error: ${err.message}`);
+      console.error(err);
+      setError(err.message || "Ocurrió un error al identificar la planta.");
     } finally {
       setLoading(false);
     }
   };
 
-
-
-  // Guardar planta en la base de datos local
-  // Ya no se maneja aquí el guardado ni el formulario, solo se delega la apertura al dashboard
-
-  // Drag & drop logic
   const inputRef = useRef();
   const [dragActive, setDragActive] = useState(false);
-  
+
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
     else if (e.type === "dragleave") setDragActive(false);
   };
+
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -79,12 +83,14 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white/70 dark:bg-gray-900/80 shadow-2xl rounded-2xl p-6 mt-10 space-y-6 transition-all duration-300 backdrop-blur-md">
-      <h2 className="text-2xl font-bold text-green-700 dark:text-green-400 text-center mb-4">🌿 Identificador de Plantas</h2>
+    <div className="bg-gradient-to-br from-green-100/60 via-green-50/70 to-white/80 dark:from-gray-800/70 dark:via-gray-900/80 dark:to-gray-950/90 rounded-2xl shadow-xl p-8 space-y-4 flex flex-col flex-grow">
+      <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2">
+        <span role="img" aria-label="Identificador de plantas">🌿</span>
+        Identificador de Plantas
+      </h2>
 
-      {/* Zona Drag & Drop / Upload */}
       <div
-        className={`rounded-2xl border-2 border-dashed flex flex-col items-center justify-center min-h-[180px] cursor-pointer transition-all duration-200 shadow-md ${dragActive ? "border-green-500 bg-green-50 dark:bg-green-900/30" : "border-green-300 bg-white/90 dark:border-gray-700 dark:bg-gray-900/40"}`}
+        className={`rounded-2xl border-2 border-dashed flex flex-col flex-grow items-center justify-center p-4 min-h-[200px] cursor-pointer transition-all duration-200 shadow-inner ${dragActive ? "border-green-500 bg-green-50 dark:bg-green-900/30" : "border-green-300 bg-white/90 dark:border-gray-700 dark:bg-gray-900/40"}`}
         tabIndex={0}
         onDragEnter={handleDrag}
         onDragOver={handleDrag}
@@ -101,25 +107,27 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
           className="hidden"
           aria-label="Subir imagen para identificar planta"
         />
-        {!previewUrl && (
-          <div className="flex flex-col items-center justify-center py-10 select-none">
+        {!previewUrl ? (
+          <div className="flex flex-col items-center justify-center text-center select-none">
             <svg className="w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            <span className="text-gray-800 dark:text-gray-200 font-semibold text-lg text-center leading-relaxed px-2" style={{letterSpacing: '0.02em'}}>Arrastra una foto aquí<br/>o haz clic para subir</span>
+            <span className="text-gray-800 dark:text-gray-200 font-semibold text-lg leading-relaxed px-2" style={{ letterSpacing: '0.02em' }}>Arrastra una foto aquí<br />o haz clic para subir</span>
           </div>
-        )}
-        {previewUrl && !loading && (
+        ) : (
           <Image
             src={previewUrl}
             alt="Previsualización"
-            width={120}
-            height={120}
-            className="rounded-xl shadow-lg mb-2 object-cover"
+            width={160}
+            height={160}
+            className="rounded-xl shadow-lg object-cover max-h-[200px]"
           />
         )}
+      </div>
+
+      <div className="flex flex-col items-center justify-center min-h-[160px]">
         {loading && (
-          <div className="flex flex-col items-center py-6">
+          <div className="flex flex-col items-center py-6 text-center">
             <svg className="animate-spin h-8 w-8 text-green-500 mb-2" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
@@ -127,11 +135,14 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
             <span className="text-green-600 dark:text-green-300 font-medium">Identificando...</span>
           </div>
         )}
-      </div>
 
-      {/* Resultados */}
-      {Array.isArray(result) && result.length > 0 && !loading && (
-        <div className="mt-6 flex flex-col items-center gap-4 w-full">
+        {error && (
+          <div className="text-center bg-red-100 dark:bg-red-900/50 p-4 rounded-lg w-full">
+            <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p>
+          </div>
+        )}
+
+        {Array.isArray(result) && result.length > 0 && !loading && (
           <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl shadow-lg p-4 flex flex-col items-center w-full max-w-md mx-auto backdrop-blur-md">
             <Image
               src={result[0]?.images?.[0]?.url || previewUrl}
@@ -155,8 +166,8 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
               Guardar en Mis Plantas
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

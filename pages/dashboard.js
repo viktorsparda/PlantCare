@@ -78,9 +78,9 @@ export default function Dashboard() {
         />
       </SidebarDrawer>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <section className="col-span-1 bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-lg p-6 flex flex-col justify-between">
+        <section className="col-span-1 flex flex-col gap-8">
           <PlantIdentifier onOpenSaveForm={openSaveForm} />
-          <div className="mt-6">
+          <div className="space-y-8">
             <Tips />
             <Recordatorios />
           </div>

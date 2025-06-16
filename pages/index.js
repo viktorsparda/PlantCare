@@ -10,8 +10,8 @@ export default function Home() {
       </div>
 
       {/* Título principal */}
-      <h1 className="text-5xl font-bold text-green-700 dark:text-green-400 mb-4 transition-colors duration-300">
-        🌿 PlantCare
+      <h1 className="text-5xl font-extrabold text-green-700 dark:text-green-400 mb-4 transition-colors duration-300">
+        🌱 PlantCare
       </h1>
       
       {/* Descripción */}

@@ -7,6 +7,7 @@ import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth
 import { auth } from "../lib/firebase.js";
 import ToggleDarkMode from "../components/ToggleDarkMode";
 
+
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -111,6 +112,9 @@ export default function Login() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-green-50 dark:bg-gray-900 p-6 transition-colors duration-300 relative">
+      <div className="absolute top-4 left-4">
+        <span className="text-2xl font-extrabold text-green-700 dark:text-green-400">🌱 PlantCare</span>
+      </div>
       {/* Toggle de dark mode en la esquina superior derecha */}
       <div className="absolute top-6 right-6">
         <ToggleDarkMode />
@@ -122,26 +126,37 @@ export default function Login() {
         onSubmit={handleSubmit}
         className="bg-white dark:bg-gray-800 shadow rounded-lg p-8 w-full max-w-md space-y-4 border border-green-600 dark:border-none"
       >
-        <input
-          type="email"
-          name="email"
-          placeholder="Correo electrónico"
-          value={form.email}
-          onChange={handleChange}
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black dark:text-white placeholder-black dark:placeholder-gray-300 bg-white dark:bg-gray-900 ${
-            errors.email ? "border-red-500" : ""
-          }`}
-        />
-        {errors.email && (
-          <p data-testid="email-error" className="text-red-500 text-sm mt-1">{errors.email}</p>
-        )}
-        <label
-          className="block text-sm font-semibold mb-1 text-gray-800 dark:text-gray-200 mt-1"
-          htmlFor="password"
-        >
-          Contraseña
-        </label>
+        <div>
+
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+            </div>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="Correo electrónico"
+              value={form.email}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black dark:text-white placeholder-black dark:placeholder-gray-300 bg-white dark:bg-gray-900 ${
+                errors.email ? "border-red-500" : ""
+              }`}
+            />
+          </div>
+          {errors.email && (
+            <p data-testid="email-error" className="text-red-500 text-sm mt-1">{errors.email}</p>
+          )}
+        </div>
         <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+            </div>
           <input
             id="password"
             type={showPassword ? "text" : "password"}
@@ -149,7 +164,7 @@ export default function Login() {
             placeholder="Contraseña"
             value={form.password}
             onChange={handleChange}
-            className={`w-full px-4 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black dark:text-white placeholder-black dark:placeholder-gray-300 bg-white dark:bg-gray-900 ${errors.password ? "border-red-500" : ""}`}
+            className={`w-full px-4 py-2 pl-10 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-black dark:text-white placeholder-black dark:placeholder-gray-300 bg-white dark:bg-gray-900 ${errors.password ? "border-red-500" : ""}`}
           />
           <button
             type="button"

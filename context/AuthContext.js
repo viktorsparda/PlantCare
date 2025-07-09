@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../lib/firebase.js";
 
@@ -28,7 +34,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, emailVerified, loading, logout, reloadUser }}>
+    <AuthContext.Provider
+      value={{ user, emailVerified, loading, logout, reloadUser }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );

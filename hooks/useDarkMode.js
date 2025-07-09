@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 export default function useDarkMode() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Verificar si estamos en el navegador
-    if (typeof window === 'undefined') return false;
-    
+    if (typeof window === "undefined") return false;
+
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
       return savedTheme === "dark";
@@ -18,7 +18,7 @@ export default function useDarkMode() {
     setIsDarkMode((prev) => {
       const newMode = !prev;
       const html = document.documentElement;
-      
+
       if (newMode) {
         html.classList.add("dark");
         localStorage.setItem("theme", "dark");
@@ -26,7 +26,7 @@ export default function useDarkMode() {
         html.classList.remove("dark");
         localStorage.setItem("theme", "light");
       }
-      
+
       return newMode;
     });
   }, []);

@@ -14,13 +14,17 @@ export default function SidebarDrawer({ open, onClose, children }) {
         }`}
         style={{ maxWidth: 480 }}
       >
-        <button
-          className="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-          onClick={onClose}
-        >
-          ×
-        </button>
-        <div className="p-6 pt-12 h-full overflow-y-auto">{children}</div>
+        {/* Elimina padding top para que el contenido ocupe todo el alto */}
+        <div className="p-6 h-full overflow-y-auto scrollbar-none">{children}</div>
+        <style jsx global>{`
+          .scrollbar-none::-webkit-scrollbar {
+            display: none;
+          }
+          .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
       </div>
     </>
   );

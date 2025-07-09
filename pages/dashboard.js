@@ -1,20 +1,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 import PlantIdentifier from "../components/PlantIdentifier";
 import MyPlants from "../components/MyPlants";
 import PlantSaveForm from "../components/PlantSaveForm";
 import Tips from "../components/Tips";
 import Recordatorios from "../components/Recordatorios";
 import Galeria from "../components/Galeria";
-import SidebarDrawer from "../components/SidebarDrawer";
 
 export default function Dashboard() {
   const { user, emailVerified, loading, reloadUser } = useAuth();
   const router = useRouter();
   const [saveFormData, setSaveFormData] = useState({});
-
+  const [refreshPlants, setRefreshPlants] = useState(0);
   const [saveFormOpen, setSaveFormOpen] = useState(false);
 
   useEffect(() => {
@@ -85,12 +84,20 @@ export default function Dashboard() {
   function closeSaveForm() {
     setSaveFormOpen(false);
   }
+  function handlePlantSaved() {
+    setRefreshPlants((r) => r + 1);
+    closeSaveForm();
+  }
   return (
-    <Layout>
-      {/* Sheet configurado para aparecer desde la derecha */}
-      <SidebarDrawer open={saveFormOpen} onClose={closeSaveForm}>
-        <PlantSaveForm {...saveFormData} onCancel={closeSaveForm} />
-      </SidebarDrawer>
+    <Layout pageTitle="Panel de Plantas">
+      {/* Renderiza el formulario de guardado como un modal si saveFormOpen es true */}
+      {saveFormOpen && (
+        <PlantSaveForm
+          {...saveFormData}
+          onCancel={closeSaveForm}
+          onPlantSaved={handlePlantSaved}
+        />
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <section className="col-span-1 flex flex-col gap-8">
           <PlantIdentifier onOpenSaveForm={openSaveForm} />
@@ -100,7 +107,7 @@ export default function Dashboard() {
           </div>
         </section>
         <section className="col-span-2 flex flex-col gap-8">
-          <MyPlants />
+          <MyPlants refreshTrigger={refreshPlants} />
           <Galeria />
         </section>
       </div>

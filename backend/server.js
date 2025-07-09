@@ -134,6 +134,91 @@ app.get("/plants", authenticateToken, (req, res) => {
   });
 });
 
+// PUT /plants/:id - Actualizar planta
+app.put("/plants/:id", authenticateToken, upload.single("photo"), (req, res) => {
+  const plantId = req.params.id;
+  const userId = req.user.uid;
+  const {
+    sciName,
+    commonName,
+    personalName,
+    location,
+    watering,
+    light,
+    drainage,
+    notes,
+    date,
+  } = req.body;
+  let photoPath = null;
+  if (req.file) {
+    photoPath = req.file.filename;
+  }
+  // Primero, obtener la planta para verificar propiedad y foto anterior
+  db.get(
+    "SELECT * FROM plants WHERE id = ? AND userId = ?",
+    [plantId, userId],
+    (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!row) return res.status(404).json({ error: "Planta no encontrada" });
+      // Si hay nueva foto, eliminar la anterior
+      if (photoPath && row.photoPath) {
+        const oldPath = path.join(__dirname, "uploads", row.photoPath);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+      const updateFields = [
+        sciName || row.sciName,
+        commonName || row.commonName,
+        personalName || row.personalName,
+        location || row.location,
+        watering || row.watering,
+        light || row.light,
+        drainage || row.drainage,
+        notes || row.notes,
+        photoPath ? photoPath : row.photoPath,
+        date || row.date,
+        plantId,
+        userId,
+      ];
+      db.run(
+        `UPDATE plants SET sciName=?, commonName=?, personalName=?, location=?, watering=?, light=?, drainage=?, notes=?, photoPath=?, date=? WHERE id=? AND userId=?`,
+        updateFields,
+        function (err) {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ updated: this.changes });
+        }
+      );
+    }
+  );
+});
+
+// DELETE /plants/:id - Eliminar planta
+app.delete("/plants/:id", authenticateToken, (req, res) => {
+  const plantId = req.params.id;
+  const userId = req.user.uid;
+  // Obtener la planta para eliminar la foto
+  db.get(
+    "SELECT * FROM plants WHERE id = ? AND userId = ?",
+    [plantId, userId],
+    (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!row) return res.status(404).json({ error: "Planta no encontrada" });
+      // Eliminar la foto asociada
+      if (row.photoPath) {
+        const photoPath = path.join(__dirname, "uploads", row.photoPath);
+        if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
+      }
+      db.run(
+        "DELETE FROM plants WHERE id = ? AND userId = ?",
+        [plantId, userId],
+        function (err) {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ deleted: this.changes });
+        }
+      );
+    }
+  );
+});
+
 app.listen(PORT, () => {
   console.log(`Backend listening on http://localhost:${PORT}`);
 });

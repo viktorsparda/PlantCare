@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ToggleDarkMode from "./ToggleDarkMode";
 import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
+import HelpButton from "./HelpButton";
 
 function LogoutButton() {
   const { logout } = useAuth();
@@ -30,7 +31,7 @@ function LogoutButton() {
   );
 }
 
-export default function Layout({ children }) {
+export default function Layout({ children, pageTitle }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
@@ -237,40 +238,40 @@ export default function Layout({ children }) {
           isSidebarOpen ? "md:ml-64" : "ml-0"
         }`}
       >
-        <header className="py-6 px-8 border-b border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 shadow-sm sticky top-0 z-30 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 flex items-center justify-center">
-              {" "}
-              {/* Contenedor para reservar espacio */}
-              {!isSidebarOpen && (
-                <button
-                  onClick={toggleSidebar}
-                  className="p-2 rounded-md text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  aria-label="Abrir menú"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                    />
-                  </svg>
-                </button>
-              )}
-            </div>
-            <h1 className="text-3xl font-bold text-green-700 dark:text-green-400">
-              Panel de Plantas
-            </h1>
+        {/* Header solo muestra el título si pageTitle está definido */}
+        <header className="py-4 px-6 border-b border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 shadow-sm sticky top-0 z-30 flex items-center justify-center relative">
+          {/* Botón hamburguesa: solo visible cuando el sidebar está cerrado */}
+          {!isSidebarOpen && (
+            <button
+              onClick={toggleSidebar}
+              className="absolute left-4 flex items-center justify-center p-2 rounded-md text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+              aria-label="Abrir menú"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-7 w-7"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
+          <div className="flex items-center gap-3 w-full justify-center">
+            {pageTitle && (
+              <h1 className="text-2xl font-bold flex items-center gap-2 text-green-700 dark:text-green-400">
+                {pageTitle === "Guía y Preguntas Frecuentes (FAQ)" && (
+                  <span className="text-3xl text-red-500">❓</span>
+                )}
+                {pageTitle}
+              </h1>
+            )}
           </div>
         </header>
         <main className="flex-1 px-8 py-8">{children}</main>
+        <HelpButton />
       </div>
     </div>
   );

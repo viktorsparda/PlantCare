@@ -3,15 +3,15 @@ import toast from "react-hot-toast";
 import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
 
-export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto, onCancel, onPlantSaved }) {
+export default function PlantEditForm({ plant, onCancel, onPlantEdited }) {
   const auth = useAuth();
-  const [personalName, setPersonalName] = useState("");
-  const [location, setLocation] = useState("");
-  const [watering, setWatering] = useState("");
-  const [light, setLight] = useState("");
-  const [drainage, setDrainage] = useState("");
-  const [notes, setNotes] = useState("");
-  const [photo, setPhoto] = useState(initialPhoto || null);
+  const [personalName, setPersonalName] = useState(plant.personalName || "");
+  const [location, setLocation] = useState(plant.location || "");
+  const [watering, setWatering] = useState(plant.watering || "");
+  const [light, setLight] = useState(plant.light || "");
+  const [drainage, setDrainage] = useState(plant.drainage || "");
+  const [notes, setNotes] = useState(plant.notes || "");
+  const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -19,20 +19,13 @@ export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto
 
   // Previsualización de imagen y limpieza de memoria
   useEffect(() => {
-    let objectUrl = null;
     if (photo) {
-      // Si la foto es un objeto File, creamos una URL. Si es un string, la usamos directamente.
-      objectUrl = (photo instanceof File) ? URL.createObjectURL(photo) : photo;
-      setPhotoPreview(objectUrl);
+      const url = URL.createObjectURL(photo);
+      setPhotoPreview(url);
+      return () => URL.revokeObjectURL(url);
     } else {
       setPhotoPreview(null);
     }
-    
-    return () => {
-      if (objectUrl && (photo instanceof File)) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
   }, [photo]);
 
   // Cerrar modal con Escape
@@ -57,7 +50,7 @@ export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto
   async function handleSubmit(e) {
     e.preventDefault();
     if (!auth || !auth.user) {
-      toast.error("Debes iniciar sesión para guardar una planta.");
+      toast.error("Debes iniciar sesión para editar una planta.");
       return;
     }
     const validation = validate();
@@ -68,35 +61,33 @@ export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto
     }
     setLoading(true);
     const formData = new FormData();
-    formData.append("sciName", sciName);
-    formData.append("commonName", commonName);
+    formData.append("sciName", plant.sciName);
+    formData.append("commonName", plant.commonName);
     formData.append("personalName", personalName);
     formData.append("location", location);
     formData.append("watering", watering);
     formData.append("light", light);
     formData.append("drainage", drainage);
     formData.append("notes", notes);
-    formData.append("date", new Date().toISOString());
-    if (photo) {
-      formData.append("photo", photo);
-    }
+    formData.append("date", plant.date || new Date().toISOString());
+    if (photo) formData.append("photo", photo);
     try {
       const token = await auth.user.getIdToken();
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-      const res = await fetch(`${apiUrl}/plants`, {
-        method: "POST",
+      const res = await fetch(`${apiUrl}/plants/${plant.id}`, {
+        method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       if (res.ok) {
-        toast.success("¡Planta guardada con éxito!");
-        onPlantSaved && onPlantSaved();
+        toast.success("¡Planta actualizada!");
+        onPlantEdited && onPlantEdited();
       } else {
         const errorData = await res.json().catch(() => ({ error: "Error desconocido" }));
-        toast.error(`Error al guardar: ${errorData.error || "Intenta de nuevo"}`);
+        toast.error(`Error al editar: ${errorData.error || "Intenta de nuevo"}`);
       }
     } catch (err) {
-      toast.error("Error de red al guardar la planta.");
+      toast.error("Error de red al editar la planta.");
     } finally {
       setLoading(false);
     }
@@ -116,29 +107,32 @@ export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60 backdrop-blur-sm">
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] w-full max-w-md overflow-y-auto p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-green-200 dark:border-green-700 relative" aria-live="polite">
-        <h2 className="text-2xl font-bold text-green-700 dark:text-green-400 mb-2 text-center">Guardar Planta</h2>
+        <h2 className="text-2xl font-bold text-green-700 dark:text-green-400 mb-2 text-center">Editar Planta</h2>
         <button type="button" onClick={onCancel} aria-label="Cerrar" className="absolute top-3 right-3 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800 rounded-full p-1 transition-all focus:outline-none focus:ring-2 focus:ring-green-500">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
             <path d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        {/* Previsualización de imagen */}
-        {photoPreview && (
-          <div className="flex justify-center mb-2">
-            <Image src={photoPreview} alt="Foto de la planta" width={120} height={120} className="rounded-xl shadow-lg border border-green-200 dark:border-green-700 object-cover" />
-          </div>
-        )}
-        <div className="flex flex-col gap-2">
-          <label className="font-semibold">Nombre científico</label>
-          <input value={sciName} readOnly className="input border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono shadow-sm" />
+
+        {/* Image previews */}
+        <div className="flex justify-center items-end gap-4 mb-2">
+          {plant.photoPath && !photoPreview && (
+            <div className="text-center">
+              <Image src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/uploads/${plant.photoPath}`} alt="Foto actual" width={100} height={100} className="rounded-xl shadow-lg border border-green-200 dark:border-green-700 object-cover" />
+              <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">Actual</span>
+            </div>
+          )}
+          {photoPreview && (
+            <div className="text-center">
+              <Image src={photoPreview} alt="Nueva foto" width={100} height={100} className="rounded-xl shadow-lg border border-green-200 dark:border-green-700 object-cover" />
+              <span className="text-xs text-green-600 dark:text-green-400 mt-1 block">Nueva</span>
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-2">
-          <label className="font-semibold">Nombre común</label>
-          <input value={commonName} readOnly className="input border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono shadow-sm" />
-        </div>
+
         <div className="flex flex-col gap-2">
           <label htmlFor="personalName" className="font-semibold">Nombre personal *</label>
-          <input id="personalName" className={`input border border-green-300 dark:border-green-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow transition ${errors.personalName ? 'border-red-500' : ''}`} value={personalName} onChange={e => setPersonalName(e.target.value)} placeholder="Ej: Mi cactus de la abuela" aria-invalid={!!errors.personalName} aria-describedby={errors.personalName ? 'personalName-error' : undefined} autoFocus />
+          <input id="personalName" className={`input border border-green-300 dark:border-green-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow transition ${errors.personalName ? 'border-red-500' : ''}`} value={personalName} onChange={e => setPersonalName(e.target.value)} placeholder="Ej: Mi cactus de la abuela" aria-invalid={!!errors.personalName} aria-describedby={errors.personalName ? 'personalName-error' : undefined} autoFocus/>
           {errors.personalName && <span id="personalName-error" className="text-red-500 text-xs">{errors.personalName}</span>}
         </div>
         <div className="flex flex-col gap-2">
@@ -186,20 +180,20 @@ export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto
         <div className="flex gap-2 justify-end mt-6">
           <button type="button" className="px-4 py-2 rounded-lg border border-gray-300 dark:border-green-700 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 font-semibold transition" onClick={onCancel} disabled={loading}>Cancelar</button>
           <button type="submit" className="px-4 py-2 rounded-lg border border-transparent bg-gradient-to-r from-green-500 to-green-600 text-white font-bold shadow-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 ease-in-out flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" disabled={loading}>
-            {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Guardando...
-              </>
-            ) : (
-              'Guardar Planta'
-            )}
+              {loading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Guardando...
+                </>
+              ) : (
+                'Guardar Cambios'
+              )}
           </button>
         </div>
       </form>
-    </div>
+      </div>
   );
 }

@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import ToggleDarkMode from '../components/ToggleDarkMode';
+import Link from "next/link";
+import ToggleDarkMode from "../components/ToggleDarkMode";
 
 export default function Home() {
   return (
@@ -13,12 +13,13 @@ export default function Home() {
       <h1 className="text-5xl font-extrabold text-green-700 dark:text-green-400 mb-4 transition-colors duration-300">
         🌱 PlantCare
       </h1>
-      
+
       {/* Descripción */}
       <p className="text-lg text-gray-700 dark:text-gray-300 mb-6 max-w-2xl transition-colors duration-300">
-        Identifica tus plantas, aprende a cuidarlas y recibe recordatorios de riego.
+        Identifica tus plantas, aprende a cuidarlas y recibe recordatorios de
+        riego.
       </p>
-      
+
       {/* Botones de acción */}
       <div className="flex gap-4 justify-center flex-wrap">
         <Link

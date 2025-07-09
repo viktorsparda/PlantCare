@@ -5,10 +5,7 @@ export default function SidebarDrawer({ open, onClose, children }) {
     <>
       {/* Fondo oscuro semitransparente */}
       {open && (
-        <div
-          className="fixed inset-0 bg-black/40 z-[9998]"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-black/40 z-[9998]" onClick={onClose} />
       )}
       {/* Panel lateral derecho */}
       <div

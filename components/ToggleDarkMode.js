@@ -14,7 +14,7 @@ export default function ToggleDarkMode() {
           isDarkMode ? "left-7" : "left-1"
         }`}
       />
-      
+
       {/* Iconos opcionales */}
       <div className="absolute inset-0 flex items-center justify-between px-2 text-xs">
         <span className="text-gray-600">☀️</span>

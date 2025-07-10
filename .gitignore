@@ -55,3 +55,6 @@ serviceAccountKey.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sensitive config
+backend/config.js

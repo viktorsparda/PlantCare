@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/backend/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -19,9 +20,11 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
 
 # debug
@@ -36,6 +39,16 @@ serviceAccountKey.json
 
 # vercel
 .vercel
+
+# uploads and generated files
+/uploads/
+
+# lock files (optional, remove if you want reproducible builds)
+/package-lock.json
+/backend/package-lock.json
+
+# VSCode settings (optional)
+.vscode/
 
 # typescript
 *.tsbuildinfo

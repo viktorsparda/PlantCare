@@ -1,6 +1,18 @@
 import Layout from "@/components/Layout";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "../context/AuthContext";
 
 export default function HelpPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
+
   return (
     <Layout pageTitle="Guía y Preguntas Frecuentes (FAQ)">
       <div className="max-w-2xl mx-auto py-2 px-4 flex flex-col items-center justify-center min-h-[80vh]">
@@ -24,7 +36,7 @@ export default function HelpPage() {
             <span className="text-2xl mt-1 text-green-500">➕</span>
             <div>
               <h2 className="text-xl font-semibold mb-1 text-green-700 dark:text-green-300">¿Cómo agrego una planta a mi colección?</h2>
-              <p className="text-gray-700 dark:text-gray-200">Después de identificar una planta, haz clic en <span className="font-semibold text-green-600 dark:text-green-400">"Guardar en Mis Plantas"</span>. Completa los datos (nombre personal, ubicación, frecuencia de riego, etc.) y guarda. La planta aparecerá en tu panel.</p>
+              <p className="text-gray-700 dark:text-gray-200">Después de identificar una planta, haz clic en <span className="font-semibold text-green-600 dark:text-green-400">&quot;Guardar en Mis Plantas&quot;</span>. Completa los datos (nombre personal, ubicación, frecuencia de riego, etc.) y guarda. La planta aparecerá en tu panel.</p>
             </div>
           </div>
           <div className="py-6 px-4 flex gap-4 items-start">
@@ -45,14 +57,14 @@ export default function HelpPage() {
             <span className="text-2xl mt-1 text-green-500">🔑</span>
             <div>
               <h2 className="text-xl font-semibold mb-1 text-green-700 dark:text-green-300">¿Cómo recupero mi contraseña?</h2>
-              <p className="text-gray-700 dark:text-gray-200">En la pantalla de inicio de sesión, haz clic en <span className="font-semibold text-green-600 dark:text-green-400">"¿Olvidaste tu contraseña?"</span>. Ingresa tu correo y recibirás un enlace para restablecerla.</p>
+              <p className="text-gray-700 dark:text-gray-200">En la pantalla de inicio de sesión, haz clic en <span className="font-semibold text-green-600 dark:text-green-400">&quot;¿Olvidaste tu contraseña?&quot;</span>. Ingresa tu correo y recibirás un enlace para restablecerla.</p>
             </div>
           </div>
           <div className="py-6 px-4 flex gap-4 items-start">
             <span className="text-2xl mt-1 text-green-500">📝</span>
             <div>
               <h2 className="text-xl font-semibold mb-1 text-green-700 dark:text-green-300">¿Cómo me registro y verifico mi cuenta?</h2>
-              <p className="text-gray-700 dark:text-gray-200">Ve a <span className="font-semibold text-green-600 dark:text-green-400">"Registrarse"</span>, completa tus datos y revisa tu correo para verificar tu cuenta antes de iniciar sesión.</p>
+              <p className="text-gray-700 dark:text-gray-200">Ve a <span className="font-semibold text-green-600 dark:text-green-400">&quot;Registrarse&quot;</span>, completa tus datos y revisa tu correo para verificar tu cuenta antes de iniciar sesión.</p>
             </div>
           </div>
           <div className="py-6 px-4 flex gap-4 items-start">
@@ -80,14 +92,14 @@ export default function HelpPage() {
             <span className="text-2xl mt-1 text-gray-500">🚪</span>
             <div>
               <h2 className="text-xl font-semibold mb-1 text-gray-700 dark:text-gray-200">¿Cómo cierro sesión?</h2>
-              <p className="text-gray-700 dark:text-gray-200">Haz clic en <span className="font-semibold text-green-600 dark:text-green-400">"Cerrar Sesión"</span> en el menú lateral.</p>
+              <p className="text-gray-700 dark:text-gray-200">Haz clic en <span className="font-semibold text-green-600 dark:text-green-400">&quot;Cerrar Sesión&quot;</span> en el menú lateral.</p>
             </div>
           </div>
           <div className="py-6 px-4 flex gap-4 items-start">
             <span className="text-2xl mt-1 text-yellow-500">💡</span>
             <div>
               <h2 className="text-xl font-semibold mb-1 text-yellow-700 dark:text-yellow-300">¿Dónde puedo ver tips y consejos?</h2>
-              <p className="text-gray-700 dark:text-gray-200">En la sección <span className="font-semibold text-green-600 dark:text-green-400">"Tips"</span> del panel principal encontrarás recomendaciones para el cuidado de tus plantas.</p>
+              <p className="text-gray-700 dark:text-gray-200">En la sección <span className="font-semibold text-green-600 dark:text-green-400">&quot;Tips&quot;</span> del panel principal encontrarás recomendaciones para el cuidado de tus plantas.</p>
             </div>
           </div>
           <div className="py-6 px-4 flex gap-4 items-start">

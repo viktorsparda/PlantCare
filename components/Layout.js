@@ -239,7 +239,7 @@ export default function Layout({ children, pageTitle }) {
         }`}
       >
         {/* Header solo muestra el título si pageTitle está definido */}
-        <header className="py-4 px-6 border-b border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 shadow-sm sticky top-0 z-30 flex items-center justify-center relative">
+        <header className="py-4 px-6 border-b border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-900/70 shadow-sm sticky top-0 z-30 flex items-center justify-center">
           {/* Botón hamburguesa: solo visible cuando el sidebar está cerrado */}
           {!isSidebarOpen && (
             <button

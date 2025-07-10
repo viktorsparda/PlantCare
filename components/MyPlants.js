@@ -4,9 +4,11 @@ import { useAuth } from "../context/AuthContext";
 import ConfirmModal from "./ConfirmModal";
 import PlantEditForm from "./PlantEditForm";
 import toast from "react-hot-toast";
+import { useRouter } from "next/router";
 
 export default function MyPlants({ refreshTrigger }) {
   const auth = useAuth();
+  const router = useRouter();
   const [plants, setPlants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -109,6 +111,10 @@ export default function MyPlants({ refreshTrigger }) {
     }
   };
 
+  const handleViewDetails = (plantId) => {
+    router.push(`/plant/${plantId}`);
+  };
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -198,6 +204,7 @@ export default function MyPlants({ refreshTrigger }) {
                 <button
                   title="Ver detalles"
                   className="p-2 rounded-lg bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 text-green-700 dark:text-green-300 transition-all"
+                  onClick={() => handleViewDetails(plant.id)}
                 >
                   <svg
                     className="w-5 h-5"

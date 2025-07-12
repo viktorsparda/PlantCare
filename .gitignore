@@ -35,7 +35,12 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+!backend/.env.example
 serviceAccountKey.json
+backend/serviceAccountKey.json
+config.js
+backend/config.js
 
 # vercel
 .vercel
@@ -43,7 +48,9 @@ serviceAccountKey.json
 # uploads and generated files
 /uploads/
 /backend/uploads/
+!backend/uploads/.gitkeep
 /backend/plants.db
+/backend/plants.db-journal
 
 # lock files (optional, remove if you want reproducible builds)
 /package-lock.json

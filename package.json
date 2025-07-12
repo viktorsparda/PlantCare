@@ -7,7 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:coverage": "jest --coverage --watchAll=false",
+    "clean": "rm -rf .next node_modules backend/node_modules",
+    "setup": "npm install && cd backend && npm install",
+    "start:backend": "cd backend && node server.js",
+    "start:full": "concurrently \"npm run start:backend\" \"npm run dev\"",
+    "check": "npm run lint && npm run test:ci"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -30,9 +37,11 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "concurrently": "^8.2.2",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "jest": "^30.0.0",
-    "jest-environment-jsdom": "^30.0.0"
+    "jest-environment-jsdom": "^30.0.0",
+    "prettier": "^3.1.0"
   }
 }

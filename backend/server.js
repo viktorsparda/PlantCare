@@ -5,6 +5,14 @@ const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const fs = require("fs");
 const admin = require("firebase-admin");
+const config = require("./config");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+// Inicializar Google Gemini
+const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
 // Inicializar Firebase Admin SDK
 const serviceAccount = require("./serviceAccountKey.json");
@@ -133,6 +141,150 @@ app.get("/plants", authenticateToken, (req, res) => {
     res.json(rows);
   });
 });
+
+// GET /plants/:id - Obtener una planta específica
+app.get("/plants/:id", authenticateToken, (req, res) => {
+  const plantId = req.params.id;
+  const userId = req.user.uid;
+
+  db.get(
+    "SELECT * FROM plants WHERE id = ? AND userId = ?",
+    [plantId, userId],
+    (err, row) => {
+      if (err) {
+        console.error("Database error fetching plant:", err);
+        return res
+          .status(500)
+          .json({ error: "Database error", details: err.message });
+      }
+      if (!row) {
+        return res.status(404).json({ error: "Planta no encontrada" });
+      }
+      res.json(row);
+    }
+  );
+});
+
+// GET /api/species-info/:sciName/:commonName - Refactorizado para usar solo Perenual
+app.get("/api/species-info/:sciName/:commonName", authenticateToken, async (req, res) => {
+  const { sciName, commonName } = req.params;
+  const queries = [sciName, commonName].filter(q => q); // Filtrar queries vacías
+
+  const options = { headers: { 'User-Agent': 'PlantCareApp/1.0' } };
+
+  for (const q of queries) {
+    try {
+      // 1. Buscar la especie para obtener su ID
+      const perenualSearchUrl = `https://perenual.com/api/species-list?key=${config.perenualApiKey}&q=${encodeURIComponent(q)}`;
+      const perenualSearchResponse = await fetch(perenualSearchUrl, options);
+      if (!perenualSearchResponse.ok) {
+        console.error(`Error en la búsqueda de Perenual para '${q}': ${perenualSearchResponse.statusText}`);
+        continue; // Probar con la siguiente query
+      }
+      const perenualSearchData = await perenualSearchResponse.json();
+      const speciesList = perenualSearchData.data;
+
+      if (speciesList && speciesList.length > 0) {
+        const speciesId = speciesList[0].id;
+        
+        // 2. Obtener detalles de la especie
+        const detailsUrl = `https://perenual.com/api/species/details/${speciesId}?key=${config.perenualApiKey}`;
+        const detailsResponse = await fetch(detailsUrl, options);
+        if (!detailsResponse.ok) continue;
+        const speciesDetails = await detailsResponse.json();
+
+        // 3. Obtener guía de cuidados
+        const careGuideUrl = `https://perenual.com/api/species/care-guide-list?key=${config.perenualApiKey}&species_id=${speciesId}`;
+        const careGuideResponse = await fetch(careGuideUrl, options);
+        let careInfo = {};
+        if (careGuideResponse.ok) {
+            const careGuideData = await careGuideResponse.json();
+            if (careGuideData && careGuideData.data && careGuideData.data.length > 0 && careGuideData.data[0].section) {
+                const careSections = careGuideData.data[0].section;
+                const wateringSection = careSections.find(s => s.type === 'watering');
+                const sunlightSection = careSections.find(s => s.type === 'sunlight');
+                if (wateringSection) careInfo.watering = wateringSection.description;
+                if (sunlightSection) careInfo.sunlight = sunlightSection.description;
+            }
+        }
+
+        // 4. Combinar los datos en un solo objeto
+        const combinedData = {
+            ...speciesDetails,
+            // Mapear campos para simular la estructura que el frontend podría esperar
+            common_name: speciesDetails.common_name,
+            scientific_name: speciesDetails.scientific_name,
+            family: speciesDetails.family,
+            genus: speciesDetails.genus,
+            cycle: speciesDetails.cycle,
+            image_url: speciesDetails.default_image ? speciesDetails.default_image.regular_url : null,
+            growth: {
+                watering: careInfo.watering || 'No especificado',
+                sunlight: careInfo.sunlight ? [careInfo.sunlight] : ['No especificado'],
+            },
+        };
+
+        console.log(`Perenual encontró datos para '${q}'`);
+        // Devolvemos los datos combinados directamente (sin la clave 'source')
+        return res.json({ source: "Perenual", data: combinedData });
+      }
+    } catch (perenualError) {
+      console.error(`Error procesando la solicitud a Perenual para '${q}':`, perenualError.message);
+      // No retornamos aquí para poder intentar con la siguiente query si existe
+    }
+  }
+
+  // Si Perenual falla, intentar con Google Gemini
+  console.log("Perenual falló. Intentando con Google Gemini...");
+  try {
+    const plantName = sciName || commonName;
+    if (plantName) {
+      const prompt = `
+        Por favor, proporciona información detallada sobre la planta "${plantName}".
+        Necesito que la respuesta sea exclusivamente un objeto JSON, sin texto adicional antes o después, ni saltos de línea o markdown.
+        El JSON debe tener la siguiente estructura exacta:
+        {
+          "common_name": "Nombre Común",
+          "scientific_name": ["Nombre Científico"],
+          "family": "Familia",
+          "genus": "Género",
+          "cycle": "Ciclo de vida (Anual, Perenne, etc.)",
+          "image_url": "URL de una imagen representativa y de uso libre",
+          "growth": {
+            "watering": "Descripción de las necesidades de riego.",
+            "sunlight": ["Descripción de las necesidades de luz solar."]
+          }
+        }
+        Si no encuentras información para la planta, devuelve un JSON con un campo "error".
+        Ejemplo de error: { "error": "Planta no encontrada" }
+      `;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      // Limpiar la respuesta para asegurarse de que es solo JSON
+      const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const aiResponse = JSON.parse(cleanedText);
+
+      if (aiResponse && !aiResponse.error) {
+        console.log(`Google Gemini encontró datos para: ${plantName}`);
+        // No agregamos "Datos de especie: Gemini" ni ningún texto extra
+        return res.json({ source: "Gemini", data: aiResponse });
+      }
+    }
+  } catch (aiError) {
+    console.error(`Error con la API de Google Gemini:`, aiError.message);
+    if (aiError.response) {
+        console.error('Cuerpo del error de Gemini:', await aiError.response.text());
+    }
+  }
+
+  // Si el bucle termina y no se encontró nada en Perenual ni en Gemini
+  console.log(`No se encontró información para '${sciName}' o '${commonName}' en ninguna API.`);
+  return res.status(404).json({ error: "Especie no encontrada" });
+});
+
 
 // PUT /plants/:id - Actualizar planta
 app.put("/plants/:id", authenticateToken, upload.single("photo"), (req, res) => {

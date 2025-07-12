@@ -34,8 +34,9 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
     setError(null);
 
     try {
+      const apiKey = process.env.NEXT_PUBLIC_PLANTNET_API_KEY;
       const response = await fetch(
-        `https://my-api.plantnet.org/v2/identify/all?api-key=2b10mNaQbuzL8nUYK8F3SBoVO`,
+        `https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}`,
         {
           method: "POST",
           body: formData,

@@ -42,6 +42,8 @@ serviceAccountKey.json
 
 # uploads and generated files
 /uploads/
+/backend/uploads/
+/backend/plants.db
 
 # lock files (optional, remove if you want reproducible builds)
 /package-lock.json
@@ -53,3 +55,6 @@ serviceAccountKey.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sensitive config
+backend/config.js

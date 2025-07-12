@@ -9,6 +9,8 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Tooltip state
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -90,11 +92,49 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
 
   return (
     <div className="bg-gradient-to-br from-green-100/60 via-green-50/70 to-white/80 dark:from-gray-800/70 dark:via-gray-900/80 dark:to-gray-950/90 rounded-2xl shadow-xl p-8 space-y-4 flex flex-col flex-grow">
-      <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2">
+      <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2 relative">
         <span role="img" aria-label="Identificador de plantas">
           🌿
         </span>
         Identificador de Plantas
+        {/* Botón de ayuda */}
+        <button
+          type="button"
+          aria-label="Ayuda para identificar plantas"
+          className="ml-2 text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 focus:outline-none relative"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          onFocus={() => setShowTooltip(true)}
+          onBlur={() => setShowTooltip(false)}
+          onClick={() => setShowTooltip((v) => !v)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+          </svg>
+        </button>
+        {/* Tooltip */}
+        {showTooltip && (
+          <div
+            className="absolute left-1/2 top-full z-20 mt-2 w-80 max-w-xs -translate-x-1/2 rounded-2xl bg-gradient-to-br from-green-50/90 via-white/90 to-green-100/90 dark:from-gray-900/95 dark:via-gray-900/95 dark:to-gray-800/95 shadow-2xl border border-green-300 dark:border-green-800 px-5 py-4 text-[15px] text-gray-800 dark:text-gray-100 animate-fade-in"
+            style={{ pointerEvents: 'auto' }}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            <div className="font-bold text-green-700 dark:text-green-300 mb-2 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+              </svg>
+              ¡Consejos para una identificación exitosa!
+            </div>
+            <ul className="list-disc pl-5 space-y-1">
+              <li><span className="font-semibold text-green-700 dark:text-green-200">Foto clara y frontal:</span> Enfoca las hojas o flores, evitando ángulos extraños.</li>
+              <li><span className="font-semibold text-green-700 dark:text-green-200">Sin sombras ni fondos confusos:</span> Busca luz natural y fondo neutro.</li>
+              <li><span className="font-semibold text-green-700 dark:text-green-200">Formatos aceptados:</span> JPG, PNG, WebP.</li>
+              <li><span className="font-semibold text-green-700 dark:text-green-200">Tamaño máximo:</span> 5MB por imagen.</li>
+              <li><span className="font-semibold text-green-700 dark:text-green-200">¡Entre más nítida la foto, mejor el resultado!</span></li>
+            </ul>
+          </div>
+        )}
       </h2>
 
       <div

@@ -177,11 +177,21 @@ db.serialize(() => {
       title TEXT NOT NULL,
       description TEXT,
       date TEXT NOT NULL,
+      frequency INTEGER DEFAULT 7,
       completed BOOLEAN DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (plantId) REFERENCES plants(id) ON DELETE CASCADE
     )
   `);
+  
+  // Agregar columna frequency si no existe (para bases de datos existentes)
+  db.run(`
+    ALTER TABLE reminders ADD COLUMN frequency INTEGER DEFAULT 7
+  `, (err) => {
+    if (err && !err.message.includes('duplicate column')) {
+      console.error('Error adding frequency column:', err);
+    }
+  });
 });
 
 // Multer setup
@@ -568,7 +578,7 @@ app.get("/reminders/:plantId", authenticateToken, (req, res) => {
 
 // POST /reminders - Crear un nuevo recordatorio
 app.post("/reminders", authenticateToken, (req, res) => {
-  const { plantId, type, title, description, date } = req.body;
+  const { plantId, type, title, description, date, frequency } = req.body;
   const userId = req.user.uid;
 
   if (!plantId || !type || !title || !date) {
@@ -590,9 +600,9 @@ app.post("/reminders", authenticateToken, (req, res) => {
 
       // Crear el recordatorio
       db.run(
-        `INSERT INTO reminders (userId, plantId, type, title, description, date) 
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [userId, plantId, type, title, description, date],
+        `INSERT INTO reminders (userId, plantId, type, title, description, date, frequency) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userId, plantId, type, title, description, date, frequency || 7],
         function (err) {
           if (err) {
             console.error("Error creating reminder:", err);

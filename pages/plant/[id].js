@@ -476,6 +476,7 @@ const Reminders = ({ plantId, plantName }) => {
       
       if (response.ok) {
         const data = await response.json();
+        
         // Mapear los datos del backend al formato esperado por el frontend
         const mappedReminders = data.map(reminder => ({
           id: reminder.id,
@@ -484,11 +485,12 @@ const Reminders = ({ plantId, plantName }) => {
           typeName: reminder.title,
           icon: reminderTypes.find(rt => rt.id === reminder.type)?.icon || '📅',
           color: reminderTypes.find(rt => rt.id === reminder.type)?.color || 'blue',
-          frequency: 7, // Valor por defecto, podríamos agregarlo a la BD después
-          nextDate: reminder.date,
+          frequency: reminder.frequency || 7, // Usar la frecuencia de la base de datos
+          date: reminder.date, // Usar 'date' en lugar de 'nextDate'
           notes: reminder.description || '',
-          completed: reminder.completed
+          completed: reminder.completed || false
         }));
+        
         setReminders(mappedReminders);
       } else {
         // Verificar si la respuesta es HTML (servidor no disponible)
@@ -524,7 +526,8 @@ const Reminders = ({ plantId, plantName }) => {
         type: reminderData.type,
         title: reminderData.typeName,
         description: reminderData.notes || '',
-        date: reminderData.nextDate
+        date: reminderData.nextDate,
+        frequency: reminderData.frequency || 7
       };
       
       const response = await fetch(`${apiUrl}/reminders`, {
@@ -541,7 +544,14 @@ const Reminders = ({ plantId, plantName }) => {
         // Devolver el recordatorio con el formato esperado por el frontend
         return {
           id: result.id,
-          ...reminderData,
+          plantId: reminderData.plantId,
+          type: reminderData.type,
+          typeName: reminderData.typeName,
+          icon: reminderData.icon,
+          color: reminderData.color,
+          frequency: reminderData.frequency,
+          date: reminderData.nextDate, // Mapear nextDate a date
+          notes: reminderData.notes,
           completed: false
         };
       } else {
@@ -714,24 +724,70 @@ const Reminders = ({ plantId, plantName }) => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    if (!dateString) return 'Fecha no válida';
+    
+    try {
+      // Crear fecha local en lugar de UTC para evitar problemas de zona horaria
+      const [year, month, day] = dateString.split('-');
+      const date = new Date(year, month - 1, day);
+      
+      // Verificar si la fecha es válida
+      if (isNaN(date.getTime())) {
+        return 'Fecha no válida';
+      }
+      
+      return date.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Fecha no válida';
+    }
   };
 
   const isOverdue = (dateString) => {
-    return new Date(dateString) < new Date();
+    if (!dateString) return false;
+    
+    try {
+      // Crear fecha local en lugar de UTC
+      const [year, month, day] = dateString.split('-');
+      const date = new Date(year, month - 1, day);
+      if (isNaN(date.getTime())) return false;
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Resetear horas para comparar solo fechas
+      date.setHours(0, 0, 0, 0);
+      
+      return date < today;
+    } catch (error) {
+      console.error('Error checking overdue:', error);
+      return false;
+    }
   };
 
   const getDaysUntil = (dateString) => {
-    const today = new Date();
-    const targetDate = new Date(dateString);
-    const diffTime = targetDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    if (!dateString) return 0;
+    
+    try {
+      // Crear fecha local en lugar de UTC
+      const [year, month, day] = dateString.split('-');
+      const date = new Date(year, month - 1, day);
+      if (isNaN(date.getTime())) return 0;
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      date.setHours(0, 0, 0, 0);
+      
+      const diffTime = date - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
+    } catch (error) {
+      console.error('Error calculating days until:', error);
+      return 0;
+    }
   };
 
   return (
@@ -909,8 +965,8 @@ const Reminders = ({ plantId, plantName }) => {
           {reminders.map(reminder => {
             const colorClasses = getColorClasses(reminder.color);
             const iconBgColor = getIconBgColor(reminder.color);
-            const overdue = isOverdue(reminder.nextDate);
-            const daysUntil = getDaysUntil(reminder.nextDate);
+            const overdue = isOverdue(reminder.date);
+            const daysUntil = getDaysUntil(reminder.date);
             
             return (
               <div key={reminder.id} className={`bg-gradient-to-r ${colorClasses} rounded-lg p-4 border-l-4 shadow-sm hover:shadow-md transition-shadow ${overdue ? 'ring-2 ring-red-400' : ''}`}>
@@ -937,7 +993,7 @@ const Reminders = ({ plantId, plantName }) => {
                         )}
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
-                        {formatDate(reminder.nextDate)}
+                        {formatDate(reminder.date)}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         Se repite cada {reminder.frequency} días

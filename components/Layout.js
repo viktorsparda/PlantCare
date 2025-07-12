@@ -158,8 +158,8 @@ export default function Layout({ children, pageTitle }) {
             </svg>
             Tips
           </a>
-          <a
-            href="#recordatorios"
+          <Link
+            href="/recordatorios"
             className="flex items-center gap-2 px-3 py-2 rounded hover:bg-green-100 dark:hover:bg-green-900 font-medium transition-colors"
           >
             {/* Bell icon */}
@@ -178,9 +178,9 @@ export default function Layout({ children, pageTitle }) {
               />
             </svg>
             Recordatorios
-          </a>
-          <a
-            href="#configuracion"
+          </Link>
+          <Link
+            href="/configuracion"
             className="flex items-center gap-2 px-3 py-2 rounded hover:bg-green-100 dark:hover:bg-green-900 font-medium transition-colors"
           >
             {/* Cog icon */}
@@ -204,9 +204,9 @@ export default function Layout({ children, pageTitle }) {
               />
             </svg>
             Configuración
-          </a>
-          <a
-            href="#perfil"
+          </Link>
+          <Link
+            href="/perfil"
             className="flex items-center gap-2 px-3 py-2 rounded hover:bg-green-100 dark:hover:bg-green-900 font-medium transition-colors"
           >
             {/* User icon */}
@@ -225,7 +225,7 @@ export default function Layout({ children, pageTitle }) {
               />
             </svg>
             Perfil
-          </a>
+          </Link>
         </nav>
         <div className="mt-auto flex flex-col gap-4">
           <ToggleDarkMode />

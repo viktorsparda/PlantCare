@@ -7,6 +7,7 @@ import MyPlants from "../components/MyPlants";
 import PlantSaveForm from "../components/PlantSaveForm";
 import Tips from "../components/Tips";
 import Recordatorios from "../components/Recordatorios";
+import RecordatoriosUrgentes from "../components/RecordatoriosUrgentes";
 import Galeria from "../components/Galeria";
 
 export default function Dashboard() {
@@ -98,6 +99,10 @@ export default function Dashboard() {
           onPlantSaved={handlePlantSaved}
         />
       )}
+      
+      {/* Recordatorios urgentes - aparece en la parte superior */}
+      <RecordatoriosUrgentes />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <section className="col-span-1 flex flex-col gap-8">
           <PlantIdentifier onOpenSaveForm={openSaveForm} />

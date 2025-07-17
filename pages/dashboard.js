@@ -80,7 +80,15 @@ export default function Dashboard() {
 
   // Handler para abrir el Sheet desde cualquier parte
   function openSaveForm(data) {
-    setSaveFormData(data);
+    // Transformar los datos de la identificación para el formulario
+    const formData = {
+      sciName: data?.species?.scientificNameWithoutAuthor || '',
+      commonName: data?.species?.commonNames?.join(', ') || '',
+      photo: data?.photo || null,
+      // Agregar otros campos si existen
+      ...data
+    };
+    setSaveFormData(formData);
     setSaveFormOpen(true);
   }
   function closeSaveForm() {
@@ -121,7 +129,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           
           {/* Columna izquierda - Herramientas principales */}
-          <div className="xl:col-span-4 space-y-8">
+          <div className="xl:col-span-5 space-y-8">
             
             {/* Identificador de plantas - más prominente */}
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg border border-green-100 dark:border-gray-700 overflow-hidden">
@@ -226,7 +234,7 @@ export default function Dashboard() {
           </div>
 
           {/* Columna central y derecha - Contenido principal */}
-          <div className="xl:col-span-8 space-y-8">
+          <div className="xl:col-span-7 space-y-8">
             
             {/* Mis plantas - sección principal */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">

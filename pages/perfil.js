@@ -7,6 +7,12 @@ import ProfilePhotoUpdater from '../components/ProfilePhotoUpdater';
 import { updateProfile, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import toast from 'react-hot-toast';
+import { 
+  FiUser, FiLock, FiSettings, FiCalendar, FiClock, FiMail, FiCheck, FiAlertTriangle,
+  FiBell, FiLogOut, FiClipboard, FiEdit
+} from 'react-icons/fi';
+import { BiLeaf } from 'react-icons/bi';
+import { FaGoogle, FaFacebook } from 'react-icons/fa';
 
 export default function Perfil() {
   const { user, logout } = useAuth();
@@ -300,7 +306,17 @@ export default function Perfil() {
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-yellow-100 text-yellow-800'
                 }`}>
-                  {user.emailVerified ? '✓ Verificado' : '⚠ No verificado'}
+                  {user.emailVerified ? (
+                    <>
+                      <FiCheck className="w-3 h-3 mr-1" />
+                      Verificado
+                    </>
+                  ) : (
+                    <>
+                      <FiAlertTriangle className="w-3 h-3 mr-1" />
+                      No verificado
+                    </>
+                  )}
                 </span>
               </div>
             </div>
@@ -312,7 +328,7 @@ export default function Perfil() {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
             <div className="flex items-center">
               <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-                <span className="text-2xl">🌱</span>
+                <BiLeaf className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Plantas</p>
@@ -326,7 +342,7 @@ export default function Perfil() {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
             <div className="flex items-center">
               <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                <span className="text-2xl">⏰</span>
+                <FiBell className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Recordatorios</p>
@@ -340,7 +356,7 @@ export default function Perfil() {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
             <div className="flex items-center">
               <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                <span className="text-2xl">📅</span>
+                <FiCalendar className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Miembro desde</p>
@@ -354,7 +370,7 @@ export default function Perfil() {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
             <div className="flex items-center">
               <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                <span className="text-2xl">🕐</span>
+                <FiClock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div className="ml-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Último acceso</p>
@@ -378,7 +394,8 @@ export default function Perfil() {
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                📝 Información Personal
+                <FiUser className="inline w-4 h-4 mr-2" />
+                Información Personal
               </button>
               <button
                 onClick={() => setActiveTab('password')}
@@ -388,7 +405,8 @@ export default function Perfil() {
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                🔒 Cambiar Contraseña
+                <FiLock className="inline w-4 h-4 mr-2" />
+                Cambiar Contraseña
               </button>
               <button
                 onClick={() => setActiveTab('account')}
@@ -398,7 +416,8 @@ export default function Perfil() {
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                🔧 Configuración de Cuenta
+                <FiSettings className="inline w-4 h-4 mr-2" />
+                Configuración de Cuenta
               </button>
             </nav>
           </div>
@@ -516,10 +535,12 @@ export default function Perfil() {
               </form>
             )}
 
-            {/* Tab: Configuración de Cuenta */}            {/* Tab: Preferencias - Redirige a Configuración */}
+            {/* Tab: Preferencias - Redirige a Configuración */}
             {activeTab === 'preferences' && (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4">⚙️</div>
+                <div className="text-6xl mb-4">
+                  <FiSettings className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600" />
+                </div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                   Configuración y Preferencias
                 </h3>
@@ -530,7 +551,7 @@ export default function Perfil() {
                   onClick={() => router.push('/configuracion')}
                   className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors inline-flex items-center"
                 >
-                  <span className="mr-2">⚙️</span>
+                  <FiSettings className="w-4 h-4 mr-2" />
                   Ir a Configuración
                 </button>
               </div>
@@ -541,8 +562,9 @@ export default function Perfil() {
               <div className="space-y-6">
                 {/* Información de la Cuenta */}
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    📋 Información de la Cuenta
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <FiClipboard className="w-5 h-5 mr-2" />
+                    Información de la Cuenta
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
@@ -558,7 +580,17 @@ export default function Perfil() {
                           ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
                           : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
                       }`}>
-                        {user.emailVerified ? '✓ Verificado' : '⚠ Pendiente'}
+                        {user.emailVerified ? (
+                          <>
+                            <FiCheck className="w-3 h-3 mr-1" />
+                            Verificado
+                          </>
+                        ) : (
+                          <>
+                            <FiAlertTriangle className="w-3 h-3 mr-1" />
+                            Pendiente
+                          </>
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -575,10 +607,23 @@ export default function Perfil() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Proveedor:</span>
-                      <span className="text-gray-900 dark:text-white">
-                        {user.providerData[0]?.providerId === 'google.com' ? '🔍 Google' : 
-                         user.providerData[0]?.providerId === 'facebook.com' ? '📘 Facebook' :
-                         '📧 Email/Contraseña'}
+                      <span className="text-gray-900 dark:text-white flex items-center">
+                        {user.providerData[0]?.providerId === 'google.com' ? (
+                          <>
+                            <FaGoogle className="w-4 h-4 mr-1" />
+                            Google
+                          </>
+                        ) : user.providerData[0]?.providerId === 'facebook.com' ? (
+                          <>
+                            <FaFacebook className="w-4 h-4 mr-1" />
+                            Facebook
+                          </>
+                        ) : (
+                          <>
+                            <FiMail className="w-4 h-4 mr-1" />
+                            Email/Contraseña
+                          </>
+                        )}
                       </span>
                     </div>
                   </div>
@@ -586,8 +631,9 @@ export default function Perfil() {
 
                 {/* Configuración rápida */}
                 <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-4">
-                    ⚙️ Configuración Rápida
+                  <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-4 flex items-center">
+                    <FiSettings className="w-5 h-5 mr-2" />
+                    Configuración Rápida
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button
@@ -595,7 +641,7 @@ export default function Perfil() {
                       className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 text-left hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center mb-2">
-                        <span className="text-xl mr-2">🎨</span>
+                        <FiEdit className="w-5 h-5 mr-2 text-purple-600" />
                         <span className="font-medium text-gray-900 dark:text-white">Preferencias</span>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -608,7 +654,7 @@ export default function Perfil() {
                       className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 text-left hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-center mb-2">
-                        <span className="text-xl mr-2">⏰</span>
+                        <FiBell className="w-5 h-5 mr-2 text-blue-600" />
                         <span className="font-medium text-gray-900 dark:text-white">Recordatorios</span>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -620,8 +666,9 @@ export default function Perfil() {
 
                 {/* Zona de Peligro */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                  <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">
-                    ⚠️ Zona de Peligro
+                  <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4 flex items-center">
+                    <FiAlertTriangle className="w-5 h-5 mr-2" />
+                    Zona de Peligro
                   </h3>
                   <div className="space-y-4">
                     <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4">
@@ -633,9 +680,10 @@ export default function Perfil() {
                       </p>
                       <button
                         onClick={handleLogout}
-                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors inline-flex items-center"
                       >
-                        🚪 Cerrar Sesión
+                        <FiLogOut className="w-4 h-4 mr-2" />
+                        Cerrar Sesión
                       </button>
                     </div>
                   </div>

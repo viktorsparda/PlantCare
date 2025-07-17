@@ -5,6 +5,8 @@ import { useAuth } from "../context/AuthContext";
 
 export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto, onCancel, onPlantSaved }) {
   const auth = useAuth();
+  const [scientificName, setScientificName] = useState(sciName || "");
+  const [plantCommonName, setPlantCommonName] = useState(commonName || "");
   const [personalName, setPersonalName] = useState("");
   const [location, setLocation] = useState("");
   const [watering, setWatering] = useState("");
@@ -16,6 +18,12 @@ export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const formRef = useRef(null);
+
+    // Efecto para actualizar los campos cuando cambian los props
+  useEffect(() => {
+    setScientificName(sciName || '');
+    setPlantCommonName(commonName || '');
+  }, [sciName, commonName]);
 
   // Previsualización de imagen y limpieza de memoria
   useEffect(() => {
@@ -68,8 +76,8 @@ export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto
     }
     setLoading(true);
     const formData = new FormData();
-    formData.append("sciName", sciName);
-    formData.append("commonName", commonName);
+    formData.append("sciName", scientificName);
+    formData.append("commonName", plantCommonName);
     formData.append("personalName", personalName);
     formData.append("location", location);
     formData.append("watering", watering);
@@ -130,11 +138,21 @@ export default function PlantSaveForm({ sciName, commonName, photo: initialPhoto
         )}
         <div className="flex flex-col gap-2">
           <label className="font-semibold">Nombre científico</label>
-          <input value={sciName} readOnly className="input border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono shadow-sm" />
+          <input 
+            value={scientificName} 
+            onChange={(e) => setScientificName(e.target.value)}
+            className="input border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+            placeholder="Nombre científico..."
+          />
         </div>
         <div className="flex flex-col gap-2">
           <label className="font-semibold">Nombre común</label>
-          <input value={commonName} readOnly className="input border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono shadow-sm" />
+          <input 
+            value={plantCommonName} 
+            onChange={(e) => setPlantCommonName(e.target.value)}
+            className="input border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-mono shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+            placeholder="Nombre común..."
+          />
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="personalName" className="font-semibold">Nombre personal *</label>

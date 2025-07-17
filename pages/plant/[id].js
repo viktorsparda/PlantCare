@@ -3,6 +3,38 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
 import Layout from '../../components/Layout';
+import { 
+  FiTag, 
+  FiCalendar, 
+  FiMapPin, 
+  FiDroplet, 
+  FiSun, 
+  FiLayers,
+  FiEdit3,
+  FiHome,
+  FiRefreshCw,
+  FiBook,
+  FiActivity,
+  FiShield,
+  FiTarget,
+  FiTrash2,
+  FiSearch
+} from 'react-icons/fi';
+import { 
+  BiWater,
+  BiSun
+} from 'react-icons/bi';
+import { 
+  GiPlantSeed,
+  GiFlowerPot,
+  GiWateringCan,
+  GiSunbeams,
+  GiPlantRoots
+} from 'react-icons/gi';
+import { 
+  MdScience,
+  MdLocalFlorist
+} from 'react-icons/md';
 
 // Componentes para las secciones
 const PlantInfo = ({ plant }) => {
@@ -11,14 +43,14 @@ const PlantInfo = ({ plant }) => {
   const shouldTruncateNotes = notesText.length > 100;
 
   const plantData = [
-    { icon: '🏷️', label: 'Apodo', value: plant.personalName, color: 'purple' },
-    { icon: '🌺', label: 'Especie', value: plant.commonName || plant.sciName, color: 'pink' },
-    { icon: '🔬', label: 'Nombre científico', value: plant.sciName, color: 'blue' },
-    { icon: '📅', label: 'Fecha de adquisición', value: plant.date ? new Date(plant.date).toLocaleDateString() : 'No especificada', color: 'indigo' },
-    { icon: '📍', label: 'Ubicación', value: plant.location || 'No especificada', color: 'red' },
-    { icon: '💧', label: 'Riego', value: plant.watering || 'No especificado', color: 'cyan' },
-    { icon: '☀️', label: 'Luz', value: plant.light || 'No especificada', color: 'yellow' },
-    { icon: '🏺', label: 'Drenaje', value: plant.drainage || 'No especificado', color: 'orange' }
+    { icon: <FiTag className="w-5 h-5" />, label: 'Apodo', value: plant.personalName, color: 'purple' },
+    { icon: <MdLocalFlorist className="w-5 h-5" />, label: 'Especie', value: plant.commonName || plant.sciName, color: 'pink' },
+    { icon: <MdScience className="w-5 h-5" />, label: 'Nombre científico', value: plant.sciName, color: 'blue' },
+    { icon: <FiCalendar className="w-5 h-5" />, label: 'Fecha de adquisición', value: plant.date ? new Date(plant.date).toLocaleDateString() : 'No especificada', color: 'indigo' },
+    { icon: <FiMapPin className="w-5 h-5" />, label: 'Ubicación', value: plant.location || 'No especificada', color: 'red' },
+    { icon: <GiWateringCan className="w-5 h-5" />, label: 'Riego', value: plant.watering || 'No especificado', color: 'cyan' },
+    { icon: <GiSunbeams className="w-5 h-5" />, label: 'Luz', value: plant.light || 'No especificada', color: 'yellow' },
+    { icon: <FiLayers className="w-5 h-5" />, label: 'Drenaje', value: plant.drainage || 'No especificado', color: 'orange' }
   ];
 
   const capitalizeText = (text) => {
@@ -43,7 +75,7 @@ const PlantInfo = ({ plant }) => {
   return (
     <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-6">
       <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-6 flex items-center">
-        <span className="text-3xl mr-3">🪴</span>
+        <GiFlowerPot className="w-8 h-8 mr-3 text-green-600 dark:text-green-400" />
         Información de tu Planta
       </h2>
       
@@ -51,7 +83,9 @@ const PlantInfo = ({ plant }) => {
         {plantData.map((item, index) => (
           <div key={index} className={`bg-gradient-to-r ${getColorClasses(item.color)} rounded-lg p-4 border-l-4 shadow-sm hover:shadow-md transition-shadow`}>
             <div className="flex items-start">
-              <span className="text-2xl mr-3 flex-shrink-0">{item.icon}</span>
+              <div className="text-gray-700 dark:text-gray-300 mr-3 flex-shrink-0 p-1">
+                {item.icon}
+              </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{item.label}</p>
                 <p className="text-gray-800 dark:text-gray-100 font-medium leading-relaxed">{capitalizeText(item.value)}</p>
@@ -65,7 +99,9 @@ const PlantInfo = ({ plant }) => {
       {plant.notes && (
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-4 border-l-4 border-green-500 shadow-sm">
           <div className="flex items-start">
-            <span className="text-2xl mr-3 flex-shrink-0">📝</span>
+            <div className="text-green-600 dark:text-green-400 mr-3 flex-shrink-0 p-1">
+              <FiEdit3 className="w-5 h-5" />
+            </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">Notas Personales</p>
               <p className="text-gray-700 dark:text-gray-200 leading-relaxed">
@@ -101,28 +137,28 @@ const SpeciesInfo = ({ speciesDetails, isLoading }) => {
     
     return [
       { 
-        icon: '🏛️', 
+        icon: <FiHome className="w-5 h-5" />, 
         label: 'Familia', 
         value: capitalizeText(speciesDetails.family || 'No disponible'),
         color: 'emerald',
         description: 'Grupo taxonómico que agrupa géneros relacionados'
       },
       { 
-        icon: '🌿', 
+        icon: <GiPlantRoots className="w-5 h-5" />, 
         label: 'Género', 
         value: capitalizeText(speciesDetails.genus || 'No disponible'),
         color: 'teal',
         description: 'Clasificación que agrupa especies similares'
       },
       { 
-        icon: '🔄', 
+        icon: <FiRefreshCw className="w-5 h-5" />, 
         label: 'Ciclo de vida', 
         value: capitalizeText(speciesDetails.cycle || 'No disponible'),
         color: 'cyan',
         description: 'Duración del ciclo vital de la planta'
       },
       { 
-        icon: '🏷️', 
+        icon: <FiTag className="w-5 h-5" />, 
         label: 'Nombre común', 
         value: capitalizeText(speciesDetails.common_name || 'No disponible'),
         color: 'blue',
@@ -144,7 +180,7 @@ const SpeciesInfo = ({ speciesDetails, isLoading }) => {
   return (
     <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-6">
       <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-6 flex items-center">
-        <span className="text-3xl mr-3">🔬</span>
+        <FiBook className="w-8 h-8 mr-3 text-green-600 dark:text-green-400" />
         Detalles de la Especie
       </h2>
       
@@ -158,7 +194,9 @@ const SpeciesInfo = ({ speciesDetails, isLoading }) => {
           {getSpeciesData().map((item, index) => (
             <div key={index} className={`bg-gradient-to-r ${getColorClasses(item.color)} rounded-lg p-4 border-l-4 shadow-sm hover:shadow-md transition-shadow group`}>
               <div className="flex items-start">
-                <span className="text-2xl mr-3 flex-shrink-0">{item.icon}</span>
+                <div className="text-gray-700 dark:text-gray-300 mr-3 flex-shrink-0 p-1">
+                  {item.icon}
+                </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{item.label}</p>
                   <p className="text-gray-800 dark:text-gray-100 font-medium leading-relaxed mb-2">{item.value}</p>
@@ -174,7 +212,9 @@ const SpeciesInfo = ({ speciesDetails, isLoading }) => {
           {speciesDetails.scientific_name && Array.isArray(speciesDetails.scientific_name) && (
             <div className="md:col-span-2 bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 rounded-lg p-4 border-l-4 border-violet-500 shadow-sm">
               <div className="flex items-start">
-                <span className="text-2xl mr-3 flex-shrink-0">🧬</span>
+                <div className="text-violet-600 dark:text-violet-400 mr-3 flex-shrink-0 p-1">
+                  <MdScience className="w-5 h-5" />
+                </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Nombres Científicos</p>
                   <div className="flex flex-wrap gap-2">
@@ -191,7 +231,7 @@ const SpeciesInfo = ({ speciesDetails, isLoading }) => {
         </div>
       ) : (
         <div className="text-center py-8">
-          <span className="text-4xl mb-4 block">🌱</span>
+          <GiPlantSeed className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
           <p className="text-gray-600 dark:text-gray-300 mb-2">No hay información específica de la especie disponible</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Los detalles botánicos se mostrarán aquí cuando estén disponibles</p>
         </div>
@@ -227,7 +267,7 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
     
     const cardConfig = {
       watering: {
-        icon: '💧',
+        icon: <BiWater className="w-5 h-5" />,
         label: 'Riego',
         bgColor: 'from-blue-100 to-cyan-100 dark:from-gray-700 dark:to-gray-600',
         iconBg: 'bg-blue-500',
@@ -235,7 +275,7 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
         buttonColor: 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200'
       },
       sunlight: {
-        icon: '☀️',
+        icon: <BiSun className="w-5 h-5" />,
         label: 'Luz solar',
         bgColor: 'from-yellow-100 to-orange-100 dark:from-gray-700 dark:to-gray-600',
         iconBg: 'bg-yellow-500',
@@ -249,7 +289,9 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
     return (
       <div className={`bg-gradient-to-r ${config.bgColor} rounded-lg p-4 flex items-start`}>
         <div className={`${config.iconBg} rounded-full p-2 mr-4 flex-shrink-0`}>
-          <span className="text-white text-lg">{config.icon}</span>
+          <div className="text-white">
+            {config.icon}
+          </div>
         </div>
         <div className="flex-1">
           <p className={`text-sm font-medium ${config.textColor} mb-1`}>{config.label}</p>
@@ -370,7 +412,7 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
           {Array.isArray(careInfo.care_tips) && careInfo.care_tips.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center mb-3">
-                <span className="text-2xl mr-3">💡</span>
+                <FiActivity className="w-6 h-6 mr-3 text-green-600 dark:text-green-400" />
                 <h3 className="text-xl font-bold text-green-700 dark:text-green-300">Consejos Prácticos</h3>
               </div>
               <div className="space-y-3">
@@ -383,7 +425,7 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
           {Array.isArray(careInfo.common_problems) && careInfo.common_problems.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center mb-3">
-                <span className="text-2xl mr-3">⚠️</span>
+                <FiShield className="w-6 h-6 mr-3 text-yellow-600 dark:text-yellow-400" />
                 <h3 className="text-xl font-bold text-yellow-700 dark:text-yellow-300">Problemas Comunes</h3>
               </div>
               <div className="space-y-3">
@@ -396,7 +438,7 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
           {Array.isArray(careInfo.personalized_recommendations) && careInfo.personalized_recommendations.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center mb-3">
-                <span className="text-2xl mr-3">🎯</span>
+                <FiTarget className="w-6 h-6 mr-3 text-blue-600 dark:text-blue-400" />
                 <h3 className="text-xl font-bold text-blue-700 dark:text-blue-300">Recomendaciones Personalizadas</h3>
               </div>
               <div className="space-y-3">
@@ -407,7 +449,7 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
         </div>
       ) : (
         <div className="text-center py-8">
-          <span className="text-4xl mb-4 block">🌿</span>
+          <GiPlantRoots className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
           <p className="text-gray-600 dark:text-gray-300">No hay recomendaciones de cuidado específicas disponibles.</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Los consejos se mostrarán aquí cuando tengamos más información sobre tu planta.</p>
         </div>
@@ -430,11 +472,11 @@ const Reminders = ({ plantId, plantName }) => {
   const { user } = useAuth();
 
   const reminderTypes = [
-    { id: 'watering', label: 'Riego', icon: '💧', color: 'blue', defaultFreq: 7 },
-    { id: 'fertilizing', label: 'Fertilización', icon: '🌱', color: 'green', defaultFreq: 30 },
-    { id: 'pruning', label: 'Poda', icon: '✂️', color: 'yellow', defaultFreq: 90 },
-    { id: 'repotting', label: 'Trasplante', icon: '🏺', color: 'orange', defaultFreq: 365 },
-    { id: 'inspection', label: 'Inspección', icon: '🔍', color: 'purple', defaultFreq: 7 }
+    { id: 'watering', label: 'Riego', icon: <FiDroplet className="w-5 h-5" />, color: 'blue', defaultFreq: 7 },
+    { id: 'fertilizing', label: 'Fertilización', icon: <GiPlantSeed className="w-5 h-5" />, color: 'green', defaultFreq: 30 },
+    { id: 'pruning', label: 'Poda', icon: <FiActivity className="w-5 h-5" />, color: 'yellow', defaultFreq: 90 },
+    { id: 'repotting', label: 'Trasplante', icon: <GiFlowerPot className="w-5 h-5" />, color: 'orange', defaultFreq: 365 },
+    { id: 'inspection', label: 'Inspección', icon: <FiSearch className="w-5 h-5" />, color: 'purple', defaultFreq: 7 }
   ];
 
   // Cargar recordatorios al montar el componente
@@ -794,7 +836,7 @@ const Reminders = ({ plantId, plantName }) => {
     <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 flex items-center">
-          <span className="text-3xl mr-3">⏰</span>
+          <FiActivity className="w-8 h-8 mr-3 text-green-600 dark:text-green-400" />
           Recordatorios
         </h2>
         <button
@@ -853,7 +895,9 @@ const Reminders = ({ plantId, plantName }) => {
               }`}
             >
               <div className="text-center">
-                <span className="text-2xl block mb-1">{type.icon}</span>
+                <div className="text-gray-600 dark:text-gray-400 mb-1 flex justify-center">
+                  {type.icon}
+                </div>
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{type.label}</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 block">
                   {type.defaultFreq < 30 ? `${type.defaultFreq}d` : 
@@ -875,7 +919,7 @@ const Reminders = ({ plantId, plantName }) => {
               onClick={() => setShowAddForm(false)}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
-              ✕
+              <FiTrash2 className="w-4 h-4" />
             </button>
           </div>
           
@@ -891,7 +935,7 @@ const Reminders = ({ plantId, plantName }) => {
               >
                 {reminderTypes.map(type => (
                   <option key={type.id} value={type.id}>
-                    {type.icon} {type.label}
+                    {type.label}
                   </option>
                 ))}
               </select>
@@ -973,7 +1017,9 @@ const Reminders = ({ plantId, plantName }) => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-start flex-1">
                     <div className={`${iconBgColor} rounded-full p-2 mr-4`}>
-                      <span className="text-white text-lg">{reminder.icon}</span>
+                      <div className="text-white">
+                        {reminderTypes.find(rt => rt.id === reminder.type)?.icon || <FiCalendar className="w-5 h-5" />}
+                      </div>
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -999,8 +1045,9 @@ const Reminders = ({ plantId, plantName }) => {
                         Se repite cada {reminder.frequency} días
                       </p>
                       {reminder.notes && (
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 italic">
-                          📝 {reminder.notes}
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 italic flex items-center">
+                          <FiEdit3 className="w-4 h-4 mr-1" />
+                          {reminder.notes}
                         </p>
                       )}
                     </div>
@@ -1010,7 +1057,7 @@ const Reminders = ({ plantId, plantName }) => {
                     disabled={loading}
                     className={`text-red-500 hover:text-red-700 p-1 transition-colors ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
                   >
-                    <span className="text-lg">🗑️</span>
+                    <FiTrash2 className="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -1019,7 +1066,7 @@ const Reminders = ({ plantId, plantName }) => {
         </div>
       ) : (
         <div className="text-center py-8">
-          <span className="text-4xl mb-4 block">📅</span>
+          <FiCalendar className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
           <p className="text-gray-600 dark:text-gray-300 mb-2">No hay recordatorios configurados</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Usa los botones de &quot;Agregar Rápido&quot; arriba para crear recordatorios automáticos

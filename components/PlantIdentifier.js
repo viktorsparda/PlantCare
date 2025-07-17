@@ -169,7 +169,10 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
                 </p>
               </div>
               <button
-                onClick={() => onOpenSaveForm(result[0])}
+                onClick={() => onOpenSaveForm({
+                  ...result[0],
+                  photo: image
+                })}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors shadow-md"
                 title="Guardar esta planta en tu colección"
               >

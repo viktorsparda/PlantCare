@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
+import { FaTint, FaLeaf, FaCut, FaExchangeAlt, FaSearch, FaCalendarAlt, FaExclamationTriangle, FaSpinner, FaStickyNote, FaPlusCircle } from 'react-icons/fa';
 
 const reminderTypes = [
-  { id: 'watering', label: 'Riego', icon: '💧', color: 'blue' },
-  { id: 'fertilizing', label: 'Fertilización', icon: '🌱', color: 'green' },
-  { id: 'pruning', label: 'Poda', icon: '✂️', color: 'yellow' },
-  { id: 'repotting', label: 'Trasplante', icon: '🏺', color: 'orange' },
-  { id: 'inspection', label: 'Inspección', icon: '🔍', color: 'purple' }
+  { id: 'watering', label: 'Riego', icon: <FaTint className="text-blue-500" />, color: 'blue' },
+  { id: 'fertilizing', label: 'Fertilización', icon: <FaLeaf className="text-green-500" />, color: 'green' },
+  { id: 'pruning', label: 'Poda', icon: <FaCut className="text-yellow-500" />, color: 'yellow' },
+  { id: 'repotting', label: 'Trasplante', icon: <FaExchangeAlt className="text-orange-500" />, color: 'orange' },
+  { id: 'inspection', label: 'Inspección', icon: <FaSearch className="text-purple-500" />, color: 'purple' }
 ];
 
 export default function RemindersPage() {
@@ -59,7 +60,7 @@ export default function RemindersPage() {
                   plantImage: plant.photoPath,
                   type: reminder.type,
                   typeName: reminder.title,
-                  icon: reminderTypes.find(rt => rt.id === reminder.type)?.icon || '📅',
+                  icon: reminderTypes.find(rt => rt.id === reminder.type)?.icon || <FaCalendarAlt className="text-gray-500" />,
                   color: reminderTypes.find(rt => rt.id === reminder.type)?.color || 'blue',
                   nextDate: reminder.date,
                   frequency: reminder.frequency || 7,
@@ -208,8 +209,8 @@ export default function RemindersPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            📅 Todos los Recordatorios
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3">
+            <FaCalendarAlt /> Todos los Recordatorios
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Gestiona todos los recordatorios de cuidado de tus plantas
@@ -221,7 +222,7 @@ export default function RemindersPage() {
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <span className="text-red-500 text-xl mr-3">⚠️</span>
+                <FaExclamationTriangle className="text-red-500 text-xl mr-3" />
                 <div>
                   <p className="text-red-800 dark:text-red-200 font-semibold">Servidor Backend No Disponible</p>
                   <p className="text-red-700 dark:text-red-300 text-sm">
@@ -280,12 +281,12 @@ export default function RemindersPage() {
         {/* Lista de recordatorios */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <FaSpinner className="animate-spin h-8 w-8 text-blue-500" />
             <p className="ml-3 text-gray-600 dark:text-gray-300">Cargando recordatorios...</p>
           </div>
         ) : plants.length === 0 ? (
           <div className="text-center py-12">
-            <span className="text-6xl mb-4 block">🌱</span>
+            <FaLeaf className="text-6xl mb-4 block mx-auto text-green-400" />
             <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">
               No tienes plantas registradas
             </h2>
@@ -294,14 +295,14 @@ export default function RemindersPage() {
             </p>
             <button
               onClick={() => router.push('/dashboard')}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
             >
-              Ir al Dashboard
+              <FaPlusCircle /> Ir al Dashboard
             </button>
           </div>
         ) : filteredReminders.length === 0 ? (
           <div className="text-center py-12">
-            <span className="text-6xl mb-4 block">📅</span>
+            <FaCalendarAlt className="text-6xl mb-4 block mx-auto text-gray-400" />
             <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">
               No hay recordatorios {filter === 'all' ? '' : `para "${filter}"`}
             </h2>
@@ -376,8 +377,8 @@ export default function RemindersPage() {
                   </div>
                   
                   {reminder.notes && (
-                    <div className="text-sm text-gray-600 dark:text-gray-300 italic">
-                      📝 {reminder.notes}
+                    <div className="text-sm text-gray-600 dark:text-gray-300 italic flex items-center gap-2">
+                      <FaStickyNote /> {reminder.notes}
                     </div>
                   )}
                 </div>

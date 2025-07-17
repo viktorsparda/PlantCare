@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FaQuestion } from 'react-icons/fa';
 
 const buttonStyle = {
   position: "fixed",
@@ -12,7 +13,7 @@ const buttonStyle = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: "2rem",
+  fontSize: "1.5rem",
   fontWeight: 700,
   boxShadow: "0 4px 16px rgba(34,197,94,0.15), 0 1.5px 6px rgba(37,99,235,0.10)",
   zIndex: 1000,
@@ -32,7 +33,7 @@ const HelpButton = () => (
       onMouseOver={e => (e.currentTarget.style.transform = "scale(1.08)")}
       onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")}
     >
-      ?
+      <FaQuestion />
     </a>
   </Link>
 );

@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [saveFormData, setSaveFormData] = useState({});
   const [refreshPlants, setRefreshPlants] = useState(0);
   const [saveFormOpen, setSaveFormOpen] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -129,11 +130,59 @@ export default function Dashboard() {
                   <h2 className="text-xl font-bold text-green-800 dark:text-green-300">
                     🌿 Identificar Nueva Planta
                   </h2>
-                  <div className="bg-green-100 dark:bg-green-900 rounded-full p-2">
-                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <button
+                    type="button"
+                    aria-label="Ayuda para identificar plantas"
+                    className="bg-green-100 dark:bg-green-900 rounded-full p-2 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 focus:outline-none relative transition-colors"
+                    onMouseEnter={() => setShowTooltip(true)}
+                    onMouseLeave={() => setShowTooltip(false)}
+                    onFocus={() => setShowTooltip(true)}
+                    onBlur={() => setShowTooltip(false)}
+                    onClick={() => setShowTooltip((v) => !v)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
                     </svg>
-                  </div>
+                  </button>
+                  
+                  {/* Tooltip que aparece fuera del contenedor */}
+                  {showTooltip && (
+                    <div
+                      className="fixed z-[9999] w-80 max-w-sm rounded-2xl bg-gradient-to-br from-green-50/98 via-white/98 to-green-100/98 dark:from-gray-900/98 dark:via-gray-900/98 dark:to-gray-800/98 shadow-2xl border border-green-300 dark:border-green-800 px-5 py-4 text-sm text-gray-800 dark:text-gray-100 backdrop-blur-md"
+                      style={{ 
+                        pointerEvents: 'auto',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        marginTop: '40px'
+                      }}
+                      onMouseEnter={() => setShowTooltip(true)}
+                      onMouseLeave={() => setShowTooltip(false)}
+                    >
+                      <div className="font-bold text-green-700 dark:text-green-300 mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                        </svg>
+                        ¡Consejos para identificación exitosa!
+                      </div>
+                      <ul className="list-disc pl-5 space-y-2 text-sm">
+                        <li><span className="font-semibold text-green-700 dark:text-green-200">Foto clara y frontal:</span> Enfoca las hojas o flores nítidamente.</li>
+                        <li><span className="font-semibold text-green-700 dark:text-green-200">Buena iluminación:</span> Evita sombras y fondos confusos.</li>
+                        <li><span className="font-semibold text-green-700 dark:text-green-200">Formatos aceptados:</span> JPG, PNG, WebP (máx. 5MB).</li>
+                        <li><span className="font-semibold text-green-700 dark:text-green-200">¡Entre más nítida la foto, mejor el resultado!</span></li>
+                      </ul>
+                      
+                      {/* Botón para cerrar */}
+                      <button 
+                        onClick={() => setShowTooltip(false)}
+                        className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Sube una foto para identificar cualquier planta y agregarla a tu colección

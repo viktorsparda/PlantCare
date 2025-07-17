@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/router";
+import { FaTint, FaLeaf, FaCut, FaExchangeAlt, FaSearch, FaCheck, FaTimes, FaBell } from 'react-icons/fa';
 
 const reminderTypes = [
-  { id: 'watering', label: 'Riego', icon: '💧', color: 'blue' },
-  { id: 'fertilizing', label: 'Fertilización', icon: '🌱', color: 'green' },
-  { id: 'pruning', label: 'Poda', icon: '✂️', color: 'yellow' },
-  { id: 'repotting', label: 'Trasplante', icon: '🏺', color: 'orange' },
-  { id: 'inspection', label: 'Inspección', icon: '🔍', color: 'purple' }
+  { id: 'watering', label: 'Riego', icon: <FaTint />, color: 'blue' },
+  { id: 'fertilizing', label: 'Fertilización', icon: <FaLeaf />, color: 'green' },
+  { id: 'pruning', label: 'Poda', icon: <FaCut />, color: 'yellow' },
+  { id: 'repotting', label: 'Trasplante', icon: <FaExchangeAlt />, color: 'orange' },
+  { id: 'inspection', label: 'Inspección', icon: <FaSearch />, color: 'purple' }
 ];
 
 // Componente para mostrar recordatorios urgentes (hoy y vencidos)
@@ -69,7 +70,7 @@ export default function RecordatoriosUrgentes() {
                   plantName: plant.personalName || plant.commonName || plant.sciName,
                   type: reminder.type,
                   typeName: reminder.title,
-                  icon: reminderTypes.find(rt => rt.id === reminder.type)?.icon || '📅',
+                  icon: reminderTypes.find(rt => rt.id === reminder.type)?.icon || <FaBell />,
                   color: reminderTypes.find(rt => rt.id === reminder.type)?.color || 'blue',
                   nextDate: reminder.date,
                   frequency: reminder.frequency || 7,
@@ -147,64 +148,48 @@ export default function RecordatoriosUrgentes() {
     router.push(`/plant/${plantId}`);
   };
 
-  if (loading || serverError || urgentReminders.length === 0) {
-    return null; // No mostrar nada si no hay recordatorios urgentes
-  }
+  const handleComplete = async (reminderId) => {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/reminders/${reminderId}/complete`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        setUrgentReminders(prev => prev.filter(r => r.id !== reminderId));
+      }
+    } catch (error) {
+      console.error('Error completing reminder:', error);
+    }
+  };
+
+  if (loading) return <div className="text-center p-4">Cargando recordatorios urgentes...</div>;
+  if (serverError) return <div className="text-center p-4 text-red-500">Error al conectar con el servidor.</div>;
+  if (urgentReminders.length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-r from-red-100 via-orange-100 to-yellow-100 dark:from-red-900/30 dark:via-orange-900/30 dark:to-yellow-900/30 rounded-xl shadow-lg p-4 mb-6 border-l-4 border-red-500">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-bold text-red-800 dark:text-red-200 flex items-center gap-2">
-          <span className="text-2xl animate-pulse">🚨</span>
-          Recordatorios Urgentes
-        </h3>
-        <span className="text-sm text-red-600 dark:text-red-300 font-semibold">
-          {urgentReminders.length} pendiente{urgentReminders.length !== 1 ? 's' : ''}
-        </span>
-      </div>
-      
-      <div className="space-y-2">
-        {urgentReminders.slice(0, 3).map(reminder => (
-          <div 
-            key={reminder.id}
-            className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow border-l-2 border-red-400"
-            onClick={() => goToPlant(reminder.plantId)}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center flex-1">
-                <span className="text-lg mr-3">{reminder.icon}</span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">
-                      {reminder.typeName}
-                    </span>
-                    {isOverdue(reminder.nextDate) ? (
-                      <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        Vencido
-                      </span>
-                    ) : isToday(reminder.nextDate) ? (
-                      <span className="bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        Hoy
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {reminder.plantName}
-                  </p>
-                </div>
+    <div className="p-4 bg-red-100 dark:bg-red-900/50 rounded-lg mb-6">
+      <h2 className="text-xl font-bold text-red-800 dark:text-red-200 mb-3 flex items-center gap-2">
+        <FaBell className="animate-pulse" /> Recordatorios Urgentes
+      </h2>
+      <div className="space-y-3">
+        {urgentReminders.map(reminder => (
+          <div key={reminder.id} className="p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`text-xl text-${reminder.color}-500`}>{reminder.icon}</div>
+              <div>
+                <h3 className="font-semibold text-gray-800 dark:text-white">{reminder.typeName}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{reminder.plantName}</p>
+                <p className="text-xs text-red-600 dark:text-red-400">Vence: {new Date(reminder.nextDate).toLocaleDateString()}</p>
               </div>
-              <span className="text-xs text-gray-500 dark:text-gray-400">→</span>
             </div>
+            <button onClick={() => handleComplete(reminder.id)} className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600">
+              <FaCheck />
+            </button>
           </div>
         ))}
-        
-        {urgentReminders.length > 3 && (
-          <div className="text-center pt-2">
-            <p className="text-xs text-red-600 dark:text-red-400">
-              +{urgentReminders.length - 3} recordatorios más requieren atención
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

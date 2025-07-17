@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { FaEnvelope, FaPalette, FaLock, FaSave } from 'react-icons/fa';
 
 export default function UserPreferences() {
   const { user } = useAuth();
@@ -76,8 +77,8 @@ export default function UserPreferences() {
 
       {/* Notificaciones */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          📧 Notificaciones
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <FaEnvelope /> Notificaciones
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -136,10 +137,10 @@ export default function UserPreferences() {
         </div>
       </div>
 
-      {/* Visualización */}
+      {/* Preferencias de Pantalla */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          🎨 Visualización
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <FaPalette /> Preferencias de Pantalla
         </h3>
         <div className="space-y-4">
           <div>
@@ -194,8 +195,8 @@ export default function UserPreferences() {
 
       {/* Privacidad */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          🔒 Privacidad
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <FaLock /> Privacidad
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -262,9 +263,10 @@ export default function UserPreferences() {
         <button
           onClick={savePreferences}
           disabled={loading}
-          className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+          className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400"
         >
-          {loading ? 'Guardando...' : 'Guardar Preferencias'}
+          <FaSave />
+          {loading ? 'Guardando...' : 'Guardar Cambios'}
         </button>
       </div>
     </div>

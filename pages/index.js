@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ToggleDarkMode from "../components/ToggleDarkMode";
+import { FaLeaf, FaSignInAlt, FaUserPlus } from 'react-icons/fa';
 
 export default function Home() {
   return (
@@ -10,8 +11,8 @@ export default function Home() {
       </div>
 
       {/* Título principal */}
-      <h1 className="text-5xl font-extrabold text-green-700 dark:text-green-400 mb-4 transition-colors duration-300">
-        🌱 PlantCare
+      <h1 className="text-5xl font-extrabold text-green-700 dark:text-green-400 mb-4 transition-colors duration-300 flex items-center gap-3">
+        <FaLeaf /> PlantCare
       </h1>
 
       {/* Descripción */}
@@ -24,21 +25,25 @@ export default function Home() {
       <div className="flex gap-4 justify-center flex-wrap">
         <Link
           href="/login"
-          className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-5 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+          className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white px-5 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium flex items-center gap-2"
         >
-          Iniciar sesión
+          <FaSignInAlt /> Iniciar sesión
         </Link>
         <Link
           href="/register"
-          className="bg-white dark:bg-gray-800 border border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 px-5 py-2 rounded-lg hover:bg-green-50 dark:hover:bg-gray-700 shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+          className="bg-white dark:bg-gray-800 border border-green-600 dark:border-green-500 text-green-600 dark:text-green-400 px-5 py-2 rounded-lg hover:bg-green-50 dark:hover:bg-gray-700 shadow-md hover:shadow-lg transition-all duration-200 font-medium flex items-center gap-2"
         >
-          Registrarse
+          <FaUserPlus /> Registrarse
         </Link>
       </div>
 
       {/* Decoración adicional opcional */}
-      <div className="mt-12 text-4xl opacity-20 dark:opacity-10 transition-opacity duration-300">
-        🌱 🌿 🍃 🌾 🌳
+      <div className="mt-12 text-4xl opacity-20 dark:opacity-10 transition-opacity duration-300 flex gap-4">
+        <FaLeaf />
+        <FaLeaf className="transform rotate-45" />
+        <FaLeaf className="transform -rotate-45" />
+        <FaLeaf className="transform rotate-90" />
+        <FaLeaf className="transform -rotate-90" />
       </div>
     </main>
   );

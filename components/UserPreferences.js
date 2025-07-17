@@ -94,7 +94,7 @@ export default function UserPreferences() {
                 onChange={(e) => updatePreference('notifications', 'email', e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 dark:after:bg-gray-100 peer-checked:bg-green-600 dark:peer-checked:bg-green-500"></div>
             </label>
           </div>
 
@@ -112,7 +112,7 @@ export default function UserPreferences() {
                 onChange={(e) => updatePreference('notifications', 'reminders', e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 dark:after:bg-gray-100 peer-checked:bg-green-600 dark:peer-checked:bg-green-500"></div>
             </label>
           </div>
 
@@ -130,7 +130,7 @@ export default function UserPreferences() {
                 onChange={(e) => updatePreference('notifications', 'plantUpdates', e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 dark:after:bg-gray-100 peer-checked:bg-green-600 dark:peer-checked:bg-green-500"></div>
             </label>
           </div>
         </div>
@@ -156,6 +156,7 @@ export default function UserPreferences() {
               <option value="fr">Français</option>
               <option value="pt">Português</option>
             </select>
+            <p className="text-xs text-yellow-600 dark:text-yellow-300 mt-1">(Solo cambia el idioma de la interfaz, en desarrollo)</p>
           </div>
 
           <div>
@@ -171,6 +172,7 @@ export default function UserPreferences() {
               <option value="mm/dd/yyyy">MM/DD/YYYY</option>
               <option value="yyyy-mm-dd">YYYY-MM-DD</option>
             </select>
+            <p className="text-xs text-yellow-600 dark:text-yellow-300 mt-1">(No afecta a todas las fechas, en desarrollo)</p>
           </div>
 
           <div>
@@ -185,6 +187,7 @@ export default function UserPreferences() {
               <option value="celsius">Celsius (°C)</option>
               <option value="fahrenheit">Fahrenheit (°F)</option>
             </select>
+            <p className="text-xs text-yellow-600 dark:text-yellow-300 mt-1">(Solo visual, en desarrollo)</p>
           </div>
         </div>
       </div>
@@ -201,6 +204,7 @@ export default function UserPreferences() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Permitir que otros usuarios vean tu perfil
               </p>
+              <p className="text-xs text-yellow-600 dark:text-yellow-300">(En desarrollo, no afecta la visibilidad real)</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -209,7 +213,7 @@ export default function UserPreferences() {
                 onChange={(e) => updatePreference('privacy', 'profilePublic', e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 dark:after:bg-gray-100 peer-checked:bg-green-600 dark:peer-checked:bg-green-500"></div>
             </label>
           </div>
 
@@ -219,6 +223,7 @@ export default function UserPreferences() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Contribuir con estadísticas anónimas para mejorar la app
               </p>
+              <p className="text-xs text-yellow-600 dark:text-yellow-300 mt-1">(En desarrollo, no se comparten datos aún)</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -227,7 +232,7 @@ export default function UserPreferences() {
                 onChange={(e) => updatePreference('privacy', 'shareStats', e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 dark:after:bg-gray-100 peer-checked:bg-green-600 dark:peer-checked:bg-green-500"></div>
             </label>
           </div>
 
@@ -237,6 +242,7 @@ export default function UserPreferences() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Ayudar a mejorar la aplicación con datos de uso anónimos
               </p>
+              <p className="text-xs text-yellow-600 dark:text-yellow-300 mt-1">(En desarrollo, no se recopilan datos aún)</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -245,7 +251,7 @@ export default function UserPreferences() {
                 onChange={(e) => updatePreference('privacy', 'allowAnalytics', e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 dark:after:bg-gray-100 peer-checked:bg-green-600 dark:peer-checked:bg-green-500"></div>
             </label>
           </div>
         </div>

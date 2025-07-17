@@ -3,16 +3,15 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import Image from 'next/image';
-import UserPreferences from '../components/UserPreferences';
+import ProfilePhotoUpdater from '../components/ProfilePhotoUpdater';
 import { updateProfile, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import toast from 'react-hot-toast';
 
 export default function Perfil() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('info');
 
   // Estados para información personal
@@ -100,8 +99,6 @@ export default function Perfil() {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setMessage('');
 
     try {
       await updateProfile(user, {
@@ -109,11 +106,29 @@ export default function Perfil() {
         photoURL: profileData.photoURL
       });
 
-      setMessage('Perfil actualizado exitosamente');
-      setTimeout(() => setMessage(''), 3000);
+      toast.success(
+        (t) => (
+          <div>
+            <p className="font-medium">¡Perfil actualizado!</p>
+            <p className="text-sm opacity-90">Los cambios se han guardado exitosamente</p>
+          </div>
+        ),
+        {
+          duration: 4000,
+        }
+      );
     } catch (error) {
-      setError('Error al actualizar el perfil: ' + error.message);
-      setTimeout(() => setError(''), 5000);
+      toast.error(
+        (t) => (
+          <div>
+            <p className="font-medium">Error al actualizar el perfil</p>
+            <p className="text-sm opacity-90">{error.message}</p>
+          </div>
+        ),
+        {
+          duration: 6000,
+        }
+      );
     } finally {
       setLoading(false);
     }
@@ -122,18 +137,16 @@ export default function Perfil() {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setMessage('');
 
     // Validaciones
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      toast.error('Las contraseñas no coinciden');
       setLoading(false);
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      setError('La nueva contraseña debe tener al menos 6 caracteres');
+      toast.error('La nueva contraseña debe tener al menos 6 caracteres');
       setLoading(false);
       return;
     }
@@ -149,20 +162,43 @@ export default function Perfil() {
       // Actualizar contraseña
       await updatePassword(user, passwordData.newPassword);
 
-      setMessage('Contraseña actualizada exitosamente');
+      toast.success(
+        (t) => (
+          <div>
+            <p className="font-medium">¡Contraseña actualizada!</p>
+            <p className="text-sm opacity-90">Tu contraseña se ha cambiado exitosamente</p>
+          </div>
+        ),
+        {
+          duration: 4000,
+        }
+      );
+
       setPasswordData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
-      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
+      let errorMessage = 'Error al actualizar la contraseña';
+      let errorDetail = error.message;
+      
       if (error.code === 'auth/wrong-password') {
-        setError('La contraseña actual es incorrecta');
-      } else {
-        setError('Error al actualizar la contraseña: ' + error.message);
+        errorMessage = 'Contraseña incorrecta';
+        errorDetail = 'La contraseña actual es incorrecta';
       }
-      setTimeout(() => setError(''), 5000);
+      
+      toast.error(
+        (t) => (
+          <div>
+            <p className="font-medium">{errorMessage}</p>
+            <p className="text-sm opacity-90">{errorDetail}</p>
+          </div>
+        ),
+        {
+          duration: 6000,
+        }
+      );
     } finally {
       setLoading(false);
     }
@@ -175,6 +211,14 @@ export default function Perfil() {
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
+  };
+
+  const handlePhotoUpdate = (newPhotoURL) => {
+    setProfileData(prev => ({
+      ...prev,
+      photoURL: newPhotoURL
+    }));
+    // El toast se maneja en el componente ProfilePhotoUpdater
   };
 
   const formatDate = (dateString) => {
@@ -214,18 +258,34 @@ export default function Perfil() {
         <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-6 mb-8 text-white">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              {user.photoURL ? (
-                <Image
-                  src={user.photoURL}
-                  alt="Avatar"
-                  width={80}
-                  height={80}
-                  className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
-                />
+              {user.photoURL || profileData.photoURL ? (
+                <div className="relative group">
+                  <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg overflow-hidden group-hover:border-green-200 transition-colors duration-200">
+                    <Image
+                      src={user.photoURL || profileData.photoURL}
+                      alt="Avatar"
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <ProfilePhotoUpdater 
+                    user={user} 
+                    onUpdate={handlePhotoUpdate}
+                    className="absolute inset-0"
+                  />
+                </div>
               ) : (
-                <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold">
-                  {user.displayName ? user.displayName.charAt(0).toUpperCase() : 
-                   user.email ? user.email.charAt(0).toUpperCase() : '?'}
+                <div className="relative group">
+                  <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold border-4 border-white group-hover:border-green-200 transition-colors duration-200">
+                    {user.displayName ? user.displayName.charAt(0).toUpperCase() : 
+                     user.email ? user.email.charAt(0).toUpperCase() : '?'}
+                  </div>
+                  <ProfilePhotoUpdater 
+                    user={user} 
+                    onUpdate={handlePhotoUpdate}
+                    className="absolute inset-0"
+                  />
                 </div>
               )}
             </div>
@@ -306,19 +366,6 @@ export default function Perfil() {
           </div>
         </div>
 
-        {/* Mensajes */}
-        {message && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg">
-            <p className="text-green-800 dark:text-green-200">{message}</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
-            <p className="text-red-800 dark:text-red-200">{error}</p>
-          </div>
-        )}
-
         {/* Tabs */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
           <div className="border-b border-gray-200 dark:border-gray-700">
@@ -344,16 +391,6 @@ export default function Perfil() {
                 🔒 Cambiar Contraseña
               </button>
               <button
-                onClick={() => setActiveTab('preferences')}
-                className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
-                  activeTab === 'preferences'
-                    ? 'text-green-600 border-b-2 border-green-600 bg-green-50 dark:bg-green-900/20'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                ⚙️ Preferencias
-              </button>
-              <button
                 onClick={() => setActiveTab('account')}
                 className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
                   activeTab === 'account'
@@ -361,7 +398,7 @@ export default function Perfil() {
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
-                🔧 Cuenta
+                🔧 Configuración de Cuenta
               </button>
             </nav>
           </div>
@@ -479,23 +516,49 @@ export default function Perfil() {
               </form>
             )}
 
-            {/* Tab: Preferencias */}
+            {/* Tab: Configuración de Cuenta */}            {/* Tab: Preferencias - Redirige a Configuración */}
             {activeTab === 'preferences' && (
-              <UserPreferences />
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">⚙️</div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Configuración y Preferencias
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  Las preferencias de la aplicación se han movido a una página dedicada para una mejor organización.
+                </p>
+                <button
+                  onClick={() => router.push('/configuracion')}
+                  className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors inline-flex items-center"
+                >
+                  <span className="mr-2">⚙️</span>
+                  Ir a Configuración
+                </button>
+              </div>
             )}
 
             {/* Tab: Configuración de Cuenta */}
             {activeTab === 'account' && (
               <div className="space-y-6">
+                {/* Información de la Cuenta */}
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Información de la Cuenta
+                    📋 Información de la Cuenta
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="text-gray-600 dark:text-gray-400">ID de Usuario:</span>
-                      <span className="text-gray-900 dark:text-white font-mono text-sm">
-                        {user.uid}
+                      <span className="text-gray-900 dark:text-white font-mono text-sm bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
+                        {user.uid.substring(0, 8)}...
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">Email verificado:</span>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        user.emailVerified 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                      }`}>
+                        {user.emailVerified ? '✓ Verificado' : '⚠ Pendiente'}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -513,26 +576,68 @@ export default function Perfil() {
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Proveedor:</span>
                       <span className="text-gray-900 dark:text-white">
-                        {user.providerData[0]?.providerId || 'Email/Contraseña'}
+                        {user.providerData[0]?.providerId === 'google.com' ? '🔍 Google' : 
+                         user.providerData[0]?.providerId === 'facebook.com' ? '📘 Facebook' :
+                         '📧 Email/Contraseña'}
                       </span>
                     </div>
                   </div>
                 </div>
 
+                {/* Configuración rápida */}
+                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-4">
+                    ⚙️ Configuración Rápida
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                      onClick={() => router.push('/configuracion')}
+                      className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 text-left hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center mb-2">
+                        <span className="text-xl mr-2">🎨</span>
+                        <span className="font-medium text-gray-900 dark:text-white">Preferencias</span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Tema, idioma, notificaciones
+                      </p>
+                    </button>
+                    
+                    <button
+                      onClick={() => router.push('/recordatorios')}
+                      className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 text-left hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center mb-2">
+                        <span className="text-xl mr-2">⏰</span>
+                        <span className="font-medium text-gray-900 dark:text-white">Recordatorios</span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Gestionar recordatorios de plantas
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Zona de Peligro */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                   <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">
-                    Zona de Peligro
+                    ⚠️ Zona de Peligro
                   </h3>
-                  <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4">
-                    <p className="text-red-800 dark:text-red-200 mb-4">
-                      Una vez que cierres sesión, deberás iniciar sesión nuevamente para acceder a tu cuenta.
-                    </p>
-                    <button
-                      onClick={handleLogout}
-                      className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                    >
-                      Cerrar Sesión
-                    </button>
+                  <div className="space-y-4">
+                    <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4">
+                      <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">
+                        Cerrar Sesión
+                      </h4>
+                      <p className="text-red-700 dark:text-red-300 text-sm mb-4">
+                        Una vez que cierres sesión, deberás iniciar sesión nuevamente para acceder a tu cuenta.
+                      </p>
+                      <button
+                        onClick={handleLogout}
+                        className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                      >
+                        🚪 Cerrar Sesión
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

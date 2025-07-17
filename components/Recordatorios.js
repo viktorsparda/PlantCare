@@ -169,19 +169,7 @@ export default function Recordatorios() {
   const upcomingReminders = reminders.slice(0, 5);
 
   return (
-    <section className="bg-gradient-to-br from-blue-100/60 via-blue-50/70 to-white/80 dark:from-gray-800/70 dark:via-gray-900/80 dark:to-gray-950/90 rounded-2xl shadow-xl p-6 my-8 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2">
-          <span role="img" aria-label="reminder">⏰</span>
-          Recordatorios
-        </h2>
-        {plants.length > 0 && (
-          <span className="text-sm text-blue-600 dark:text-blue-400">
-            {reminders.length} total{reminders.length !== 1 ? 'es' : ''}
-          </span>
-        )}
-      </div>
-
+    <div>
       {/* Banner de error del servidor */}
       {serverError && (
         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
@@ -276,6 +264,6 @@ export default function Recordatorios() {
           )}
         </div>
       )}
-    </section>
+    </div>
   );
 }

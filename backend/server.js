@@ -116,7 +116,7 @@ admin.initializeApp({
 });
 
 const app = express();
-const PORT = 3001;
+const PORT = 4000;
 
 // Middleware
 app.use(cors());
@@ -285,6 +285,45 @@ app.get("/plants/:id", authenticateToken, (req, res) => {
       res.json(row);
     }
   );
+});
+
+// POST /upload-profile-photo - Subir foto de perfil
+app.post("/upload-profile-photo", authenticateToken, upload.single("profilePhoto"), (req, res) => {
+  const userId = req.user.uid;
+  
+  if (!req.file) {
+    return res.status(400).json({ error: "No se subió ningún archivo" });
+  }
+
+  // Validar tipo de archivo
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  if (!allowedTypes.includes(req.file.mimetype)) {
+    // Eliminar archivo no válido
+    fs.unlink(req.file.path, (err) => {
+      if (err) console.error('Error eliminando archivo no válido:', err);
+    });
+    return res.status(415).json({ error: "Tipo de archivo no soportado. Usa JPG, PNG, GIF o WebP." });
+  }
+
+  // Validar tamaño (máximo 5MB)
+  if (req.file.size > 5 * 1024 * 1024) {
+    // Eliminar archivo muy grande
+    fs.unlink(req.file.path, (err) => {
+      if (err) console.error('Error eliminando archivo muy grande:', err);
+    });
+    return res.status(413).json({ error: "El archivo es muy grande. Máximo 5MB." });
+  }
+
+  // Construir la URL completa de la foto
+  const protocol = req.protocol;
+  const host = req.get('host');
+  const photoURL = `${protocol}://${host}/uploads/${req.file.filename}`;
+
+  res.json({ 
+    message: "Foto de perfil subida exitosamente",
+    photoURL: photoURL,
+    filename: req.file.filename
+  });
 });
 
 // GET /api/species-info/:sciName/:commonName - Con cache y datos de respaldo
@@ -657,6 +696,106 @@ app.put("/reminders/:id", authenticateToken, (req, res) => {
         return res.status(404).json({ error: "Recordatorio no encontrado" });
       }
       res.json({ message: "Recordatorio actualizado exitosamente" });
+    }
+  );
+});
+
+// DELETE /user/all-data - Eliminar todos los datos del usuario
+app.delete("/user/all-data", authenticateToken, (req, res) => {
+  const userId = req.user.uid;
+
+  // Primero obtener todas las rutas de fotos del usuario para eliminarlas
+  db.all(
+    "SELECT photoPath FROM plants WHERE userId = ?",
+    [userId],
+    (err, rows) => {
+      if (err) {
+        console.error("Error al obtener rutas de fotos:", err.message);
+        return res.status(500).json({ error: "Error interno del servidor" });
+      }
+
+      // Eliminar archivos de fotos
+      const deletePromises = rows.map(row => {
+        return new Promise((resolve) => {
+          if (row.photoPath) {
+            // Extraer solo el nombre del archivo de la URL completa
+            const filename = row.photoPath.split('/').pop();
+            const photoPath = path.join(__dirname, "uploads", filename);
+            
+            fs.unlink(photoPath, (unlinkErr) => {
+              if (unlinkErr && unlinkErr.code !== 'ENOENT') {
+                console.warn(`Error al eliminar foto ${filename}:`, unlinkErr.message);
+              }
+              resolve();
+            });
+          } else {
+            resolve();
+          }
+        });
+      });
+
+      // Esperar a que se eliminen todas las fotos antes de continuar
+      Promise.all(deletePromises).then(() => {
+        // Iniciar transacción para eliminar datos de la base de datos
+        db.serialize(() => {
+          db.run("BEGIN TRANSACTION", (beginErr) => {
+            if (beginErr) {
+              console.error("Error al iniciar transacción:", beginErr.message);
+              return res.status(500).json({ error: "Error interno del servidor" });
+            }
+
+            // Eliminar recordatorios (se eliminan automáticamente por CASCADE, pero lo hacemos explícito)
+            db.run(
+              "DELETE FROM reminders WHERE userId = ?",
+              [userId],
+              function(reminderErr) {
+                if (reminderErr) {
+                  console.error("Error al eliminar recordatorios:", reminderErr.message);
+                  return db.run("ROLLBACK", () => {
+                    res.status(500).json({ error: "Error al eliminar recordatorios" });
+                  });
+                }
+
+                const deletedReminders = this.changes;
+
+                // Eliminar plantas
+                db.run(
+                  "DELETE FROM plants WHERE userId = ?",
+                  [userId],
+                  function(plantErr) {
+                    if (plantErr) {
+                      console.error("Error al eliminar plantas:", plantErr.message);
+                      return db.run("ROLLBACK", () => {
+                        res.status(500).json({ error: "Error al eliminar plantas" });
+                      });
+                    }
+
+                    const deletedPlants = this.changes;
+
+                    // Confirmar transacción
+                    db.run("COMMIT", (commitErr) => {
+                      if (commitErr) {
+                        console.error("Error al confirmar transacción:", commitErr.message);
+                        return res.status(500).json({ error: "Error al confirmar eliminación" });
+                      }
+
+                      console.log(`Datos eliminados para usuario ${userId}: ${deletedPlants} plantas, ${deletedReminders} recordatorios`);
+                      
+                      res.json({
+                        success: true,
+                        message: "Todos los datos han sido eliminados permanentemente",
+                        deletedPlants,
+                        deletedReminders,
+                        deletedPhotos: rows.length
+                      });
+                    });
+                  }
+                );
+              }
+            );
+          });
+        });
+      });
     }
   );
 });

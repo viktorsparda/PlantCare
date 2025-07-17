@@ -1,14 +1,12 @@
 // Componente moderno de Tips para plantas
 export default function Tips() {
   return (
-    <section className="bg-gradient-to-br from-green-100/60 via-green-50/70 to-white/80 dark:from-gray-800/70 dark:via-gray-900/80 dark:to-gray-950/90 rounded-2xl shadow-xl p-8 my-8 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2">
-        <span role="img" aria-label="tip">
-          💡
-        </span>{" "}
-        Tips para tus plantas
-      </h2>
-      <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-200">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+        <span className="mr-2">💡</span>
+        Tips de Cuidado
+      </h3>
+      <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-200 text-sm">
         <li>
           Riega tus plantas por la mañana para aprovechar mejor la humedad.
         </li>
@@ -25,6 +23,6 @@ export default function Tips() {
         </li>
         <li>Revisa el drenaje de las macetas y usa sustrato adecuado.</li>
       </ul>
-    </section>
+    </div>
   );
 }

@@ -199,35 +199,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Panel de acciones rápidas */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <span className="mr-2">⚡</span>
-                Acciones Rápidas
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <button 
-                  onClick={() => router.push('/recordatorios')}
-                  className="flex flex-col items-center p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors group"
-                >
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                    <span className="text-white text-sm">⏰</span>
-                  </div>
-                  <span className="text-xs font-medium text-blue-700 dark:text-blue-300 text-center">Ver Recordatorios</span>
-                </button>
-                
-                <button 
-                  onClick={() => router.push('/perfil')}
-                  className="flex flex-col items-center p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors group"
-                >
-                  <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                    <span className="text-white text-sm">👤</span>
-                  </div>
-                  <span className="text-xs font-medium text-purple-700 dark:text-purple-300 text-center">Mi Perfil</span>
-                </button>
-              </div>
-            </div>
-
             {/* Tips de cuidado */}
             <Tips />
             

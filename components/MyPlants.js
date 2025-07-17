@@ -33,7 +33,7 @@ export default function MyPlants({ refreshTrigger }) {
       try {
         setLoading(true);
         const token = await auth.user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001" || "http://192.168.100.35:3000";
         const response = await fetch(`${apiUrl}/plants`, {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -37,95 +37,6 @@ import {
 } from 'react-icons/md';
 
 // Componentes para las secciones
-const PlantInfo = ({ plant }) => {
-  const [expandedNotes, setExpandedNotes] = useState(false);
-  const notesText = plant.notes || 'Sin notas';
-  const shouldTruncateNotes = notesText.length > 100;
-
-  const plantData = [
-    { icon: <FiTag className="w-5 h-5" />, label: 'Apodo', value: plant.personalName, color: 'purple' },
-    { icon: <MdLocalFlorist className="w-5 h-5" />, label: 'Especie', value: plant.commonName || plant.sciName, color: 'pink' },
-    { icon: <MdScience className="w-5 h-5" />, label: 'Nombre científico', value: plant.sciName, color: 'blue' },
-    { icon: <FiCalendar className="w-5 h-5" />, label: 'Fecha de adquisición', value: plant.date ? new Date(plant.date).toLocaleDateString() : 'No especificada', color: 'indigo' },
-    { icon: <FiMapPin className="w-5 h-5" />, label: 'Ubicación', value: plant.location || 'No especificada', color: 'red' },
-    { icon: <GiWateringCan className="w-5 h-5" />, label: 'Riego', value: plant.watering || 'No especificado', color: 'cyan' },
-    { icon: <GiSunbeams className="w-5 h-5" />, label: 'Luz', value: plant.light || 'No especificada', color: 'yellow' },
-    { icon: <FiLayers className="w-5 h-5" />, label: 'Drenaje', value: plant.drainage || 'No especificado', color: 'orange' }
-  ];
-
-  const capitalizeText = (text) => {
-    if (!text || text === 'No especificada' || text === 'No especificado') return text;
-    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
-  };
-
-  const getColorClasses = (color) => {
-    const colors = {
-      purple: 'from-purple-100 to-violet-100 dark:from-purple-900/30 dark:to-violet-900/30 border-purple-500',
-      pink: 'from-pink-100 to-rose-100 dark:from-pink-900/30 dark:to-rose-900/30 border-pink-500',
-      blue: 'from-blue-100 to-sky-100 dark:from-blue-900/30 dark:to-sky-900/30 border-blue-500',
-      indigo: 'from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 border-indigo-500',
-      red: 'from-red-100 to-orange-100 dark:from-red-900/30 dark:to-orange-900/30 border-red-500',
-      cyan: 'from-cyan-100 to-blue-100 dark:from-cyan-900/30 dark:to-blue-900/30 border-cyan-500',
-      yellow: 'from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 border-yellow-500',
-      orange: 'from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 border-orange-500'
-    };
-    return colors[color] || colors.blue;
-  };
-
-  return (
-    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-6 flex items-center">
-        <GiFlowerPot className="w-8 h-8 mr-3 text-green-600 dark:text-green-400" />
-        Información de tu Planta
-      </h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {plantData.map((item, index) => (
-          <div key={index} className={`bg-gradient-to-r ${getColorClasses(item.color)} rounded-lg p-4 border-l-4 shadow-sm hover:shadow-md transition-shadow`}>
-            <div className="flex items-start">
-              <div className="text-gray-700 dark:text-gray-300 mr-3 flex-shrink-0 p-1">
-                {item.icon}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{item.label}</p>
-                <p className="text-gray-800 dark:text-gray-100 font-medium leading-relaxed">{capitalizeText(item.value)}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Notas especiales */}
-      {plant.notes && (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-4 border-l-4 border-green-500 shadow-sm">
-          <div className="flex items-start">
-            <div className="text-green-600 dark:text-green-400 mr-3 flex-shrink-0 p-1">
-              <FiEdit3 className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">Notas Personales</p>
-              <p className="text-gray-700 dark:text-gray-200 leading-relaxed">
-                {shouldTruncateNotes && !expandedNotes 
-                  ? notesText.substring(0, 100) + '...' 
-                  : notesText
-                }
-              </p>
-              {shouldTruncateNotes && (
-                <button
-                  onClick={() => setExpandedNotes(!expandedNotes)}
-                  className="mt-2 text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 font-medium transition-colors"
-                >
-                  {expandedNotes ? '← Ver menos' : 'Ver más →'}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 const SpeciesInfo = ({ speciesDetails, isLoading }) => {
   const capitalizeText = (text) => {
     if (!text || text === 'No disponible') return text;
@@ -178,51 +89,55 @@ const SpeciesInfo = ({ speciesDetails, isLoading }) => {
   };
 
   return (
-    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-6 flex items-center">
-        <FiBook className="w-8 h-8 mr-3 text-green-600 dark:text-green-400" />
-        Detalles de la Especie
+    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-5">
+      <h2 className="text-xl font-bold text-green-800 dark:text-green-300 mb-4 flex items-center">
+        <FiBook className="w-6 h-6 mr-2 text-green-600 dark:text-green-400" />
+        Información Botánica
       </h2>
       
       {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-          <p className="ml-3 text-gray-600 dark:text-gray-300">Cargando información de la especie...</p>
+        <div className="flex items-center justify-center py-6">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
+          <p className="ml-3 text-gray-600 dark:text-gray-300 text-sm">Cargando...</p>
         </div>
       ) : speciesDetails ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {getSpeciesData().map((item, index) => (
-            <div key={index} className={`bg-gradient-to-r ${getColorClasses(item.color)} rounded-lg p-4 border-l-4 shadow-sm hover:shadow-md transition-shadow group`}>
-              <div className="flex items-start">
-                <div className="text-gray-700 dark:text-gray-300 mr-3 flex-shrink-0 p-1">
-                  {item.icon}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{item.label}</p>
-                  <p className="text-gray-800 dark:text-gray-100 font-medium leading-relaxed mb-2">{item.value}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {item.description}
-                  </p>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {getSpeciesData().map((item, index) => (
+              <div key={index} className={`bg-gradient-to-r ${getColorClasses(item.color)} rounded-lg p-3 border-l-4 shadow-sm hover:shadow-md transition-shadow group`}>
+                <div className="flex items-center">
+                  <div className="text-gray-700 dark:text-gray-300 mr-3 flex-shrink-0">
+                    {item.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">{item.label}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-100 font-medium leading-tight truncate">
+                      {item.value}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
           
-          {/* Nombres científicos */}
+          {/* Nombres científicos en una sola línea compacta */}
           {speciesDetails.scientific_name && Array.isArray(speciesDetails.scientific_name) && (
-            <div className="md:col-span-2 bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 rounded-lg p-4 border-l-4 border-violet-500 shadow-sm">
-              <div className="flex items-start">
-                <div className="text-violet-600 dark:text-violet-400 mr-3 flex-shrink-0 p-1">
-                  <MdScience className="w-5 h-5" />
-                </div>
+            <div className="bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 rounded-lg p-3 border-l-4 border-violet-500 shadow-sm">
+              <div className="flex items-center">
+                <MdScience className="w-5 h-5 mr-2 text-violet-600 dark:text-violet-400 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Nombres Científicos</p>
-                  <div className="flex flex-wrap gap-2">
-                    {speciesDetails.scientific_name.map((name, idx) => (
-                      <span key={idx} className="bg-white/50 dark:bg-gray-800/50 px-3 py-1 rounded-full text-sm font-medium text-gray-700 dark:text-gray-200 italic">
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Nombres Científicos</p>
+                  <div className="flex flex-wrap gap-1">
+                    {speciesDetails.scientific_name.slice(0, 3).map((name, idx) => (
+                      <span key={idx} className="bg-white/50 dark:bg-gray-800/50 px-2 py-1 rounded text-xs font-medium text-gray-700 dark:text-gray-200 italic">
                         {name}
                       </span>
                     ))}
+                    {speciesDetails.scientific_name.length > 3 && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">
+                        +{speciesDetails.scientific_name.length - 3} más
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -230,10 +145,9 @@ const SpeciesInfo = ({ speciesDetails, isLoading }) => {
           )}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <GiPlantSeed className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
-          <p className="text-gray-600 dark:text-gray-300 mb-2">No hay información específica de la especie disponible</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Los detalles botánicos se mostrarán aquí cuando estén disponibles</p>
+        <div className="text-center py-6">
+          <GiPlantSeed className="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-500" />
+          <p className="text-gray-600 dark:text-gray-300 text-sm">Sin información botánica disponible</p>
         </div>
       )}
     </div>
@@ -287,21 +201,21 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
     const config = cardConfig[type];
 
     return (
-      <div className={`bg-gradient-to-r ${config.bgColor} rounded-lg p-4 flex items-start`}>
-        <div className={`${config.iconBg} rounded-full p-2 mr-4 flex-shrink-0`}>
+      <div className={`bg-gradient-to-r ${config.bgColor} rounded-lg p-3 flex items-start`}>
+        <div className={`${config.iconBg} rounded-full p-2 mr-3 flex-shrink-0`}>
           <div className="text-white">
             {config.icon}
           </div>
         </div>
         <div className="flex-1">
           <p className={`text-sm font-medium ${config.textColor} mb-1`}>{config.label}</p>
-          <p className="text-gray-700 dark:text-gray-200 font-semibold leading-relaxed">
-            {shouldTruncate && !isExpanded ? capitalizeText(truncateText(info, 80)) : capitalizeText(info)}
+          <p className="text-gray-700 dark:text-gray-200 font-semibold leading-relaxed text-sm text-justify">
+            {shouldTruncate && !isExpanded ? capitalizeText(truncateText(info, 60)) : capitalizeText(info)}
           </p>
           {shouldTruncate && (
             <button
               onClick={() => toggleSection(`basic-${type}`)}
-              className={`mt-2 text-sm ${config.buttonColor} font-medium transition-colors`}
+              className={`mt-2 text-xs ${config.buttonColor} font-medium transition-colors`}
             >
               {isExpanded ? '← Ver menos' : 'Ver más →'}
             </button>
@@ -313,17 +227,17 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
 
   const renderTipCard = (tip, idx, section) => {
     const isExpanded = expandedSections[`${section}-${idx}`];
-    const shouldTruncate = tip.length > 150;
+    const shouldTruncate = tip.length > 120;
     
     return (
-      <div key={idx} className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-700 dark:to-gray-600 rounded-lg p-4 border-l-4 border-green-500 shadow-sm hover:shadow-md transition-shadow">
-        <p className="text-gray-700 dark:text-gray-200 leading-relaxed">
-          {shouldTruncate && !isExpanded ? capitalizeText(truncateText(tip)) : capitalizeText(tip)}
+      <div key={idx} className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-700 dark:to-gray-600 rounded-lg p-3 border-l-4 border-green-500 shadow-sm hover:shadow-md transition-shadow">
+        <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed text-justify">
+          {shouldTruncate && !isExpanded ? capitalizeText(truncateText(tip, 120)) : capitalizeText(tip)}
         </p>
         {shouldTruncate && (
           <button
             onClick={() => toggleSection(`${section}-${idx}`)}
-            className="mt-2 text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 font-medium transition-colors"
+            className="mt-2 text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 font-medium transition-colors"
           >
             {isExpanded ? '← Ver menos' : 'Ver más →'}
           </button>
@@ -334,17 +248,17 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
 
   const renderProblemCard = (problem, idx, section) => {
     const isExpanded = expandedSections[`${section}-${idx}`];
-    const shouldTruncate = problem.length > 150;
+    const shouldTruncate = problem.length > 120;
     
     return (
-      <div key={idx} className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-gray-700 dark:to-gray-600 rounded-lg p-4 border-l-4 border-yellow-500 shadow-sm hover:shadow-md transition-shadow">
-        <p className="text-gray-700 dark:text-gray-200 leading-relaxed">
-          {shouldTruncate && !isExpanded ? capitalizeText(truncateText(problem)) : capitalizeText(problem)}
+      <div key={idx} className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-gray-700 dark:to-gray-600 rounded-lg p-3 border-l-4 border-yellow-500 shadow-sm hover:shadow-md transition-shadow">
+        <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed text-justify">
+          {shouldTruncate && !isExpanded ? capitalizeText(truncateText(problem, 120)) : capitalizeText(problem)}
         </p>
         {shouldTruncate && (
           <button
             onClick={() => toggleSection(`${section}-${idx}`)}
-            className="mt-2 text-sm text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-200 font-medium transition-colors"
+            className="mt-2 text-xs text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-200 font-medium transition-colors"
           >
             {isExpanded ? '← Ver menos' : 'Ver más →'}
           </button>
@@ -355,17 +269,17 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
 
   const renderRecommendationCard = (rec, idx, section) => {
     const isExpanded = expandedSections[`${section}-${idx}`];
-    const shouldTruncate = rec.length > 150;
+    const shouldTruncate = rec.length > 100; // Reducido de 150 a 100
     
     return (
-      <div key={idx} className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg p-4 border-l-4 border-blue-500 shadow-sm hover:shadow-md transition-shadow">
-        <p className="text-gray-700 dark:text-gray-200 leading-relaxed">
-          {shouldTruncate && !isExpanded ? capitalizeText(truncateText(rec)) : capitalizeText(rec)}
+      <div key={idx} className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg p-3 border-l-4 border-blue-500 shadow-sm hover:shadow-md transition-shadow">
+        <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed text-justify">
+          {shouldTruncate && !isExpanded ? capitalizeText(truncateText(rec, 100)) : capitalizeText(rec)}
         </p>
         {shouldTruncate && (
           <button
             onClick={() => toggleSection(`${section}-${idx}`)}
-            className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium transition-colors"
+            className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium transition-colors"
           >
             {isExpanded ? '← Ver menos' : 'Ver más →'}
           </button>
@@ -375,28 +289,31 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
   };
 
   return (
-    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-6">🌱 Recomendaciones de Cuidado</h2>
+    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-5">
+      <h2 className="text-xl font-bold text-green-800 dark:text-green-300 mb-4 flex items-center">
+        <GiWateringCan className="w-6 h-6 mr-2 text-green-600 dark:text-green-400" />
+        Recomendaciones de Cuidado
+      </h2>
       
       {/* Mensaje informativo si la API tiene problemas */}
       {apiMessage && (
-        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg">
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg">
           <div className="flex items-center">
-            <span className="text-blue-500 text-xl mr-3">ℹ️</span>
-            <p className="text-blue-800 dark:text-blue-200 text-sm">{apiMessage}</p>
+            <span className="text-blue-500 text-lg mr-2">ℹ️</span>
+            <p className="text-blue-800 dark:text-blue-200 text-xs">{apiMessage}</p>
           </div>
         </div>
       )}
       
       {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-          <p className="ml-3 text-gray-600 dark:text-gray-300">Cargando recomendaciones...</p>
+        <div className="flex items-center justify-center py-6">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
+          <p className="ml-3 text-gray-600 dark:text-gray-300 text-sm">Cargando recomendaciones...</p>
         </div>
       ) : careInfo ? (
-        <div className="space-y-6">
-          {/* Información básica en tarjetas pequeñas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          {/* Información básica en tarjetas compactas - Layout vertical */}
+          <div className="space-y-3">
             {renderBasicInfoCard(
               careInfo.watering || careInfo?.watering_general_benchmark?.value || 'No especificado',
               'watering'
@@ -408,50 +325,74 @@ const CareRecommendations = ({ careInfo, isLoading, apiMessage }) => {
             )}
           </div>
 
-          {/* Consejos prácticos */}
-          {Array.isArray(careInfo.care_tips) && careInfo.care_tips.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center mb-3">
-                <FiActivity className="w-6 h-6 mr-3 text-green-600 dark:text-green-400" />
-                <h3 className="text-xl font-bold text-green-700 dark:text-green-300">Consejos Prácticos</h3>
-              </div>
-              <div className="space-y-3">
-                {careInfo.care_tips.map((tip, idx) => renderTipCard(tip, idx, 'tips'))}
-              </div>
-            </div>
-          )}
-
-          {/* Problemas comunes */}
-          {Array.isArray(careInfo.common_problems) && careInfo.common_problems.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center mb-3">
-                <FiShield className="w-6 h-6 mr-3 text-yellow-600 dark:text-yellow-400" />
-                <h3 className="text-xl font-bold text-yellow-700 dark:text-yellow-300">Problemas Comunes</h3>
-              </div>
-              <div className="space-y-3">
-                {careInfo.common_problems.map((problem, idx) => renderProblemCard(problem, idx, 'problems'))}
-              </div>
-            </div>
-          )}
-
-          {/* Recomendaciones personalizadas */}
+          {/* Recomendaciones personalizadas si existen - Arriba y ocupando todo el espacio horizontal */}
           {Array.isArray(careInfo.personalized_recommendations) && careInfo.personalized_recommendations.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center mb-3">
-                <FiTarget className="w-6 h-6 mr-3 text-blue-600 dark:text-blue-400" />
-                <h3 className="text-xl font-bold text-blue-700 dark:text-blue-300">Recomendaciones Personalizadas</h3>
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <FiTarget className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+                <h3 className="text-lg font-semibold text-blue-700 dark:text-blue-300">Recomendaciones Personalizadas</h3>
               </div>
-              <div className="space-y-3">
-                {careInfo.personalized_recommendations.map((rec, idx) => renderRecommendationCard(rec, idx, 'recommendations'))}
+              <div className="space-y-2">
+                {careInfo.personalized_recommendations.slice(0, 4).map((rec, idx) => renderRecommendationCard(rec, idx, 'recommendations'))}
               </div>
+              {careInfo.personalized_recommendations.length > 4 && (
+                <div className="text-center">
+                  <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium">
+                    Ver {careInfo.personalized_recommendations.length - 4} recomendaciones más →
+                  </button>
+                </div>
+              )}
             </div>
           )}
+
+          {/* Consejos y Problemas en layout horizontal */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            
+            {/* Consejos prácticos */}
+            {Array.isArray(careInfo.care_tips) && careInfo.care_tips.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <FiActivity className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
+                  <h3 className="text-lg font-semibold text-green-700 dark:text-green-300">Consejos</h3>
+                </div>
+                <div className="space-y-2">
+                  {careInfo.care_tips.slice(0, 3).map((tip, idx) => renderTipCard(tip, idx, 'tips'))}
+                  {careInfo.care_tips.length > 3 && (
+                    <div className="text-center">
+                      <button className="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 font-medium">
+                        Ver {careInfo.care_tips.length - 3} consejos más →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Problemas comunes */}
+            {Array.isArray(careInfo.common_problems) && careInfo.common_problems.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <FiShield className="w-5 h-5 mr-2 text-yellow-600 dark:text-yellow-400" />
+                  <h3 className="text-lg font-semibold text-yellow-700 dark:text-yellow-300">Problemas Comunes</h3>
+                </div>
+                <div className="space-y-2">
+                  {careInfo.common_problems.slice(0, 3).map((problem, idx) => renderProblemCard(problem, idx, 'problems'))}
+                  {careInfo.common_problems.length > 3 && (
+                    <div className="text-center">
+                      <button className="text-sm text-yellow-600 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-200 font-medium">
+                        Ver {careInfo.common_problems.length - 3} problemas más →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
-        <div className="text-center py-8">
-          <GiPlantRoots className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
-          <p className="text-gray-600 dark:text-gray-300">No hay recomendaciones de cuidado específicas disponibles.</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Los consejos se mostrarán aquí cuando tengamos más información sobre tu planta.</p>
+        <div className="text-center py-6">
+          <GiPlantRoots className="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-500" />
+          <p className="text-gray-600 dark:text-gray-300 text-sm">No hay recomendaciones disponibles</p>
         </div>
       )}
     </div>
@@ -833,32 +774,32 @@ const Reminders = ({ plantId, plantName }) => {
   };
 
   return (
-    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-green-800 dark:text-green-300 flex items-center">
-          <FiActivity className="w-8 h-8 mr-3 text-green-600 dark:text-green-400" />
+    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-xl shadow-lg p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-green-800 dark:text-green-300 flex items-center">
+          <FiActivity className="w-6 h-6 mr-2 text-green-600 dark:text-green-400" />
           Recordatorios
         </h2>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
           disabled={loading || serverError}
-          className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
         >
           <span>+</span>
           Personalizado
         </button>
       </div>
 
-      {/* Banner de error del servidor */}
+      {/* Banner de error del servidor - compacto */}
       {serverError && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <span className="text-red-500 text-xl mr-3">⚠️</span>
+              <span className="text-red-500 text-lg mr-2">⚠️</span>
               <div>
-                <p className="text-red-800 dark:text-red-200 font-semibold">Servidor Backend No Disponible</p>
-                <p className="text-red-700 dark:text-red-300 text-sm">
-                  Para usar los recordatorios, ejecuta el archivo <code className="bg-red-100 dark:bg-red-800 px-2 py-1 rounded">start-backend.bat</code> en la carpeta raíz del proyecto.
+                <p className="text-red-800 dark:text-red-200 font-medium text-sm">Backend No Disponible</p>
+                <p className="text-red-700 dark:text-red-300 text-xs">
+                  Ejecuta <code className="bg-red-100 dark:bg-red-800 px-1 py-0.5 rounded text-xs">start-backend.bat</code>
                 </p>
               </div>
             </div>
@@ -867,7 +808,7 @@ const Reminders = ({ plantId, plantName }) => {
                 setServerError(false);
                 loadReminders();
               }}
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
+              className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition-colors"
             >
               Reintentar
             </button>
@@ -875,16 +816,16 @@ const Reminders = ({ plantId, plantName }) => {
         </div>
       )}
 
-      {/* Botones de acceso rápido */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">Agregar Rápido</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      {/* Botones de acceso rápido - más compactos */}
+      <div className="mb-4">
+        <h3 className="text-base font-semibold mb-2 text-gray-800 dark:text-gray-200">Agregar Rápido</h3>
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
           {reminderTypes.map(type => (
             <button
               key={type.id}
               onClick={() => quickAddReminder(type.id)}
               disabled={loading || serverError}
-              className={`p-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 transition-all duration-200 disabled:opacity-50 group ${
+              className={`p-2 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 transition-all duration-200 disabled:opacity-50 group ${
                 loading || serverError ? 'cursor-not-allowed' : 'hover:shadow-md transform hover:scale-105'
               } ${
                 type.color === 'blue' ? 'hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20' :
@@ -898,7 +839,7 @@ const Reminders = ({ plantId, plantName }) => {
                 <div className="text-gray-600 dark:text-gray-400 mb-1 flex justify-center">
                   {type.icon}
                 </div>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{type.label}</span>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 block leading-tight">{type.label}</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 block">
                   {type.defaultFreq < 30 ? `${type.defaultFreq}d` : 
                    type.defaultFreq < 365 ? `${Math.round(type.defaultFreq/30)}m` : 
@@ -910,11 +851,11 @@ const Reminders = ({ plantId, plantName }) => {
         </div>
       </div>
 
-      {/* Formulario personalizado */}
+      {/* Formulario personalizado - más compacto */}
       {showAddForm && (
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-600">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Recordatorio Personalizado</h3>
+        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-4 border border-gray-200 dark:border-gray-600">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200">Recordatorio Personalizado</h3>
             <button
               onClick={() => setShowAddForm(false)}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -923,15 +864,15 @@ const Reminders = ({ plantId, plantName }) => {
             </button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Tipo de cuidado
               </label>
               <select
                 value={newReminder.type}
                 onChange={(e) => handleTypeChange(e.target.value)}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               >
                 {reminderTypes.map(type => (
                   <option key={type.id} value={type.id}>
@@ -942,32 +883,32 @@ const Reminders = ({ plantId, plantName }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Próxima fecha
               </label>
               <input
                 type="date"
                 value={newReminder.nextDate}
                 onChange={(e) => setNewReminder({...newReminder, nextDate: e.target.value})}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Repetir cada (días)
               </label>
               <input
                 type="number"
                 value={newReminder.frequency}
                 onChange={(e) => setNewReminder({...newReminder, frequency: parseInt(e.target.value)})}
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
                 min="1"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Notas (opcional)
               </label>
               <input
@@ -975,22 +916,22 @@ const Reminders = ({ plantId, plantName }) => {
                 value={newReminder.notes}
                 onChange={(e) => setNewReminder({...newReminder, notes: e.target.value})}
                 placeholder="Ej: Usar agua filtrada"
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>
           </div>
 
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-3">
             <button
               onClick={handleAddReminder}
               disabled={loading}
-              className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
+              className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-3 py-2 rounded-lg transition-colors text-sm"
             >
               {loading ? 'Guardando...' : 'Guardar'}
             </button>
             <button
               onClick={() => setShowAddForm(false)}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+              className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors text-sm"
             >
               Cancelar
             </button>
@@ -998,14 +939,14 @@ const Reminders = ({ plantId, plantName }) => {
         </div>
       )}
 
-      {/* Lista de recordatorios */}
+      {/* Lista de recordatorios - más compacta */}
       {loading && reminders.length === 0 ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-          <p className="ml-3 text-gray-600 dark:text-gray-300">Cargando recordatorios...</p>
+        <div className="flex items-center justify-center py-6">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
+          <p className="ml-3 text-gray-600 dark:text-gray-300 text-sm">Cargando recordatorios...</p>
         </div>
       ) : reminders.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {reminders.map(reminder => {
             const colorClasses = getColorClasses(reminder.color);
             const iconBgColor = getIconBgColor(reminder.color);
@@ -1013,40 +954,36 @@ const Reminders = ({ plantId, plantName }) => {
             const daysUntil = getDaysUntil(reminder.date);
             
             return (
-              <div key={reminder.id} className={`bg-gradient-to-r ${colorClasses} rounded-lg p-4 border-l-4 shadow-sm hover:shadow-md transition-shadow ${overdue ? 'ring-2 ring-red-400' : ''}`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start flex-1">
-                    <div className={`${iconBgColor} rounded-full p-2 mr-4`}>
+              <div key={reminder.id} className={`bg-gradient-to-r ${colorClasses} rounded-lg p-3 border-l-4 shadow-sm hover:shadow-md transition-shadow ${overdue ? 'ring-2 ring-red-400' : ''}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center flex-1">
+                    <div className={`${iconBgColor} rounded-full p-2 mr-3 flex-shrink-0`}>
                       <div className="text-white">
-                        {reminderTypes.find(rt => rt.id === reminder.type)?.icon || <FiCalendar className="w-5 h-5" />}
+                        {reminderTypes.find(rt => rt.id === reminder.type)?.icon || <FiCalendar className="w-4 h-4" />}
                       </div>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="font-semibold text-gray-800 dark:text-gray-100">{reminder.typeName}</p>
+                        <p className="font-semibold text-gray-800 dark:text-gray-100 text-sm truncate">{reminder.typeName}</p>
                         {overdue ? (
-                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                          <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0">
                             Vencido
                           </span>
                         ) : daysUntil <= 1 ? (
-                          <span className="bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+                          <span className="bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0">
                             {daysUntil === 0 ? 'Hoy' : 'Mañana'}
                           </span>
                         ) : (
-                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                            {daysUntil} días
+                          <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0">
+                            {daysUntil}d
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
-                        {formatDate(reminder.date)}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Se repite cada {reminder.frequency} días
+                      <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
+                        {formatDate(reminder.date)} • Cada {reminder.frequency}d
                       </p>
                       {reminder.notes && (
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 italic flex items-center">
-                          <FiEdit3 className="w-4 h-4 mr-1" />
+                        <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic truncate">
                           {reminder.notes}
                         </p>
                       )}
@@ -1055,9 +992,9 @@ const Reminders = ({ plantId, plantName }) => {
                   <button
                     onClick={() => deleteReminder(reminder.id)}
                     disabled={loading}
-                    className={`text-red-500 hover:text-red-700 p-1 transition-colors ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
+                    className={`text-red-500 hover:text-red-700 p-1 transition-colors flex-shrink-0 ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
                   >
-                    <FiTrash2 className="w-5 h-5" />
+                    <FiTrash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -1065,11 +1002,11 @@ const Reminders = ({ plantId, plantName }) => {
           })}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <FiCalendar className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-500" />
-          <p className="text-gray-600 dark:text-gray-300 mb-2">No hay recordatorios configurados</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Usa los botones de &quot;Agregar Rápido&quot; arriba para crear recordatorios automáticos
+        <div className="text-center py-6">
+          <FiCalendar className="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-500" />
+          <p className="text-gray-600 dark:text-gray-300 mb-2 text-sm">No hay recordatorios configurados</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Usa los botones de &quot;Agregar Rápido&quot; arriba
           </p>
         </div>
       )}
@@ -1089,6 +1026,12 @@ export default function PlantDetailPage() {
   const [error, setError] = useState(null);
   const [dataSource, setDataSource] = useState(null);
   const [apiMessage, setApiMessage] = useState(null);
+
+  // Función para capitalizar texto
+  const capitalizeText = (text) => {
+    if (!text || text === 'No especificada' || text === 'No especificado') return text;
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
 
   useEffect(() => {
     if (!id || !user) return;
@@ -1183,35 +1126,146 @@ export default function PlantDetailPage() {
 
   return (
     <Layout>
-      <div className="container mx-auto p-4 md:p-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Columna Izquierda: Imagen y Nombre */}
-          <div className="lg:w-1/3">
-            <div className="relative aspect-square rounded-2xl shadow-2xl overflow-hidden">
-              <Image
-                src={plant.photoPath ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/${plant.photoPath.replace(/^uploads[\\/]/, '')}` : '/default-plant.jpg'}
-                alt={plant.personalName}
-                layout="fill"
-                objectFit="cover"
-                className="transition-transform duration-500 hover:scale-110"
-              />
+      <div className="container mx-auto p-4 md:p-6 max-w-7xl">
+        {/* Header Section - Información principal horizontal */}
+        <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-2xl shadow-lg p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Imagen de la planta */}
+            <div className="md:w-80 flex-shrink-0">
+              <div className="relative aspect-square rounded-xl shadow-lg overflow-hidden">
+                <Image
+                  src={plant.photoPath ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/${plant.photoPath.replace(/^uploads[\\/]/, '')}` : '/default-plant.jpg'}
+                  alt={plant.personalName}
+                  layout="fill"
+                  objectFit="cover"
+                  className="transition-transform duration-300 hover:scale-105"
+                />
+              </div>
             </div>
-            <h1 className="text-4xl font-extrabold text-center mt-6 text-gray-800 dark:text-white">{plant.personalName}</h1>
-            <p className="text-xl text-center text-gray-600 dark:text-gray-300 italic">{plant.commonName || plant.sciName}</p>
-            {/* Quitar la línea de fuente de datos */}
-            {/* {dataSource && (
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
-                Datos de especie de: {dataSource}
-              </p>
-            )} */}
+            
+            {/* Información principal */}
+            <div className="flex-1 flex flex-col justify-between">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                  {plant.personalName}
+                </h1>
+                <p className="text-lg text-gray-600 dark:text-gray-300 italic mb-4">
+                  {plant.commonName || plant.sciName}
+                </p>
+                
+                {/* Grid completo de información de la planta */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                  {/* Información básica */}
+                  <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <FiDroplet className="w-4 h-4 mr-2 text-blue-500" />
+                      <p className="text-xs font-medium text-blue-700 dark:text-blue-300">Riego</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                      {capitalizeText(plant.watering) || 'No especificado'}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <FiSun className="w-4 h-4 mr-2 text-yellow-500" />
+                      <p className="text-xs font-medium text-yellow-700 dark:text-yellow-300">Luz</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                      {capitalizeText(plant.light) || 'No especificada'}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <FiMapPin className="w-4 h-4 mr-2 text-green-500" />
+                      <p className="text-xs font-medium text-green-700 dark:text-green-300">Ubicación</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                      {capitalizeText(plant.location) || 'No especificada'}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <FiCalendar className="w-4 h-4 mr-2 text-purple-500" />
+                      <p className="text-xs font-medium text-purple-700 dark:text-purple-300">Adquisición</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                      {plant.date ? new Date(plant.date).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                  
+                  {/* Información adicional */}
+                  <div className="bg-pink-50 dark:bg-pink-900/30 rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <MdLocalFlorist className="w-4 h-4 mr-2 text-pink-500" />
+                      <p className="text-xs font-medium text-pink-700 dark:text-pink-300">Especie Común</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+                      {capitalizeText(plant.commonName || plant.sciName) || 'No especificado'}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <MdScience className="w-4 h-4 mr-2 text-indigo-500" />
+                      <p className="text-xs font-medium text-indigo-700 dark:text-indigo-300">Nombre Científico</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+                      {plant.sciName || 'No especificado'}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-orange-50 dark:bg-orange-900/30 rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <FiLayers className="w-4 h-4 mr-2 text-orange-500" />
+                      <p className="text-xs font-medium text-orange-700 dark:text-orange-300">Drenaje</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                      {capitalizeText(plant.drainage) || 'No especificado'}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-teal-50 dark:bg-teal-900/30 rounded-lg p-3">
+                    <div className="flex items-center mb-2">
+                      <FiTag className="w-4 h-4 mr-2 text-teal-500" />
+                      <p className="text-xs font-medium text-teal-700 dark:text-teal-300">Apodo</p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+                      {plant.personalName || 'No especificado'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Notas si existen */}
+              {plant.notes && (
+                <div className="mt-4 bg-green-50 dark:bg-green-900/30 rounded-lg p-4 border-l-4 border-green-500">
+                  <div className="flex items-start">
+                    <FiEdit3 className="w-4 h-4 mt-0.5 mr-2 text-green-600 dark:text-green-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-1">Notas Personales</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-200 text-justify">{plant.notes}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
+        </div>
 
-          {/* Columna Derecha: Información y Acciones */}
-          <div className="lg:w-2/3 space-y-8">
-            <PlantInfo plant={plant} />
+        {/* Content Grid - Layout en 2 columnas para desktop */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Columna Izquierda */}
+          <div className="space-y-6">
             <SpeciesInfo speciesDetails={speciesAndCareInfo} isLoading={loadingSpecies} />
-            <CareRecommendations careInfo={careInfo} isLoading={loadingSpecies} apiMessage={apiMessage} />
             <Reminders plantId={plant.id} plantName={plant.personalName} />
+          </div>
+          
+          {/* Columna Derecha */}
+          <div className="space-y-6">
+            <CareRecommendations careInfo={careInfo} isLoading={loadingSpecies} apiMessage={apiMessage} />
           </div>
         </div>
       </div>

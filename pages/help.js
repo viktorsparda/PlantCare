@@ -34,7 +34,7 @@ export default function HelpPage() {
             <FaCamera className="text-2xl mt-1 text-green-500" />
             <div>
               <h2 className="text-xl font-semibold mb-1 text-green-700 dark:text-green-300">¿Cómo identifico una planta?</h2>
-              <p className="text-gray-700 dark:text-gray-200">Usa el <span className="font-semibold text-green-600 dark:text-green-400">"Identificador de Plantas"</span> en el panel principal. Sube una foto nítida y la IA te dará su nombre y cuidados.</p>
+              <p className="text-gray-700 dark:text-gray-200">Usa el <span className="font-semibold text-green-600 dark:text-green-400">&ldquo;Identificador de Plantas&rdquo;</span> en el panel principal. Sube una foto nítida y la IA te dará su nombre y cuidados.</p>
             </div>
           </div>
           <div className="py-6 px-4 flex gap-4 items-start">

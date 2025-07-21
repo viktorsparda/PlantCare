@@ -11,8 +11,13 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // Inicializar Google Gemini
+if (!process.env.GEMINI_API_KEY) {
+  console.error('GEMINI_API_KEY environment variable is required');
+  process.exit(1);
+}
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+console.log('Google Gemini initialized successfully');
 
 // Cache para respuestas de la API
 const responseCache = new Map();
@@ -110,10 +115,16 @@ const plantDatabase = {
 };
 
 // Inicializar Firebase Admin SDK
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+try {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+  console.log('Firebase Admin SDK initialized successfully');
+} catch (error) {
+  console.error('Error initializing Firebase Admin SDK:', error);
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -123,6 +134,24 @@ app.use(cors());
 app.use(express.json()); // Para procesar JSON
 app.use(express.urlencoded({ extended: true })); // Para procesar form data
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Health check endpoint (sin autenticación)
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'PlantCare Backend is running',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Middleware de autenticación
 const authenticateToken = async (req, res, next) => {

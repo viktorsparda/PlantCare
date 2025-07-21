@@ -17,7 +17,6 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "plantcare-production-52be.up.railway.app",
-        port: "4000",
         pathname: "/uploads/**",
       },
     ],

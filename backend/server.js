@@ -116,7 +116,7 @@ admin.initializeApp({
 });
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(cors());
@@ -806,7 +806,7 @@ setInterval(() => {
   console.log('Cache de respuestas limpiado');
 }, 24 * 60 * 60 * 1000);
 
-app.listen(PORT, () => {
-  console.log(`Backend listening on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend listening on http://0.0.0.0:${PORT}`);
   console.log(`Cache inicializado, base de datos de plantas con ${Object.keys(plantDatabase).length} especies`);
 });

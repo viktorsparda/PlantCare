@@ -5,13 +5,13 @@ const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const fs = require("fs");
 const admin = require("firebase-admin");
-const config = require("./config");
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // Inicializar Google Gemini
-const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
 
 // Cache para respuestas de la API
@@ -110,7 +110,7 @@ const plantDatabase = {
 };
 
 // Inicializar Firebase Admin SDK
-const serviceAccount = require("./serviceAccountKey.json");
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });

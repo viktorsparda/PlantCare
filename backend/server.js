@@ -116,7 +116,22 @@ const plantDatabase = {
 
 // Inicializar Firebase Admin SDK
 try {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  let serviceAccount;
+  
+  // Intentar usar variable de entorno primero, luego archivo local
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    console.log('Using Firebase config from environment variable');
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } else {
+    console.log('Using Firebase config from serviceAccountKey.json file');
+    const serviceAccountPath = path.join(__dirname, 'serviceAccountKey.json');
+    if (fs.existsSync(serviceAccountPath)) {
+      serviceAccount = require('./serviceAccountKey.json');
+    } else {
+      throw new Error('No Firebase configuration found');
+    }
+  }
+  
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });

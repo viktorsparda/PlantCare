@@ -116,10 +116,14 @@ export default function GaleriaPage() {
 
       const additionalPhotosData = response.ok ? await response.json() : [];
       
-      const additionalPhotos = additionalPhotosData.map(photo => ({
-        ...photo,
-        photoURL: photo.photoURL ? `${apiUrl}/uploads/${photo.photoURL.replace(/^uploads[\\/]/, '')}` : '/default-plant.jpg'
-      }));
+      const additionalPhotos = additionalPhotosData.map(photo => {
+        const photoPath = photo.photoURL || '';
+        const correctedPath = photoPath.startsWith('uploads/') ? photoPath.substring('uploads/'.length) : photoPath;
+        return {
+          ...photo,
+          photoURL: photo.photoURL ? `${apiUrl}/uploads/${correctedPath}` : '/default-plant.jpg'
+        };
+      });
       
       // Combinar foto principal con fotos adicionales
       const mainPhoto = {

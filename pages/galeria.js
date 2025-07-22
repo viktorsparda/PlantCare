@@ -109,6 +109,20 @@ export default function GaleriaPage() {
       const token = await user.getIdToken();
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       
+      // Función helper para construir URLs correctamente
+      const buildPhotoURL = (photoPath) => {
+        if (!photoPath) return '/default-plant.jpg';
+        
+        // Si ya es una URL completa, usarla tal como está
+        if (photoPath.startsWith('http')) {
+          return photoPath;
+        }
+        
+        // Normalizar la ruta removiendo prefijos redundantes
+        const cleanPath = photoPath.replace(/^(uploads[\\/]?|\/)/, '');
+        return `${apiUrl}/uploads/${cleanPath}`;
+      };
+      
       // Cargar fotos adicionales
       const response = await fetch(`${apiUrl}/plants/${plant.id}/photos`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -116,21 +130,15 @@ export default function GaleriaPage() {
 
       const additionalPhotosData = response.ok ? await response.json() : [];
       
-      const additionalPhotos = additionalPhotosData.map(photo => {
-        const photoPath = photo.photoURL || '';
-        const correctedPath = photoPath.startsWith('uploads/') ? photoPath.substring('uploads/'.length) : photoPath;
-        return {
-          ...photo,
-          photoURL: photo.photoURL ? `${apiUrl}/uploads/${correctedPath}` : '/default-plant.jpg'
-        };
-      });
+      const additionalPhotos = additionalPhotosData.map(photo => ({
+        ...photo,
+        photoURL: buildPhotoURL(photo.photoURL)
+      }));
       
       // Combinar foto principal con fotos adicionales
       const mainPhoto = {
         id: `main-${plant.id}`,
-        photoURL: plant.photoPath 
-          ? `${apiUrl}/uploads/${plant.photoPath.replace(/^uploads[\\/]/, '')}` 
-          : '/default-plant.jpg',
+        photoURL: buildPhotoURL(plant.photoPath),
         description: plant.personalName,
         uploadDate: plant.date || new Date().toISOString(),
         isMain: true

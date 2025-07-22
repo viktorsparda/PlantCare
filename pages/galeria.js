@@ -557,35 +557,35 @@ export default function GaleriaPage() {
                   
                   {/* Overlay con botones de acción en la parte inferior */}
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2">
-                    <div className="flex gap-1.5 justify-center">
+                    <div className="flex gap-1 sm:gap-1.5 justify-center">
                       {/* Botón Ver Detalles - Estilo primario */}
                       <button
                         onClick={() => handlePlantClick(plant.id)}
-                        className="flex-1 bg-white/95 hover:bg-white text-gray-900 px-2 py-1.5 rounded-md text-xs font-medium transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg"
+                        className="flex-1 bg-white/95 hover:bg-white text-gray-900 px-1 sm:px-2 py-1.5 rounded-md text-xs font-medium transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1 sm:gap-1.5 shadow-lg"
                         aria-label="Ver detalles completos de la planta"
                       >
                         <FiEye className="w-3.5 h-3.5" />
-                        <span>Info</span>
+                        <span className="hidden sm:inline">Info</span>
                       </button>
                       
                       {/* Botón Ver Galería - Estilo secundario */}
                       <button
                         onClick={() => openPhotoViewer(plant, 0)}
-                        className="flex-1 bg-blue-600/90 hover:bg-blue-600 text-white px-2 py-1.5 rounded-md text-xs font-medium transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg"
+                        className="flex-1 bg-blue-600/90 hover:bg-blue-600 text-white px-1 sm:px-2 py-1.5 rounded-md text-xs font-medium transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1 sm:gap-1.5 shadow-lg"
                         aria-label="Ver galería de fotos"
                       >
                         <FiMaximize2 className="w-3.5 h-3.5" />
-                        <span>Fotos</span>
+                        <span className="hidden sm:inline">Fotos</span>
                       </button>
                       
                       {/* Botón agregar fotos - Mismo tamaño que los otros */}
                       <button
                         onClick={() => handleAddPhotos(plant)}
-                        className="flex-1 bg-green-600/90 hover:bg-green-600 text-white px-2 py-1.5 rounded-md text-xs font-medium transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg"
+                        className="flex-1 bg-green-600/90 hover:bg-green-600 text-white px-1 sm:px-2 py-1.5 rounded-md text-xs font-medium transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1 sm:gap-1.5 shadow-lg"
                         aria-label="Agregar más fotos a esta planta"
                       >
                         <FiPlus className="w-3.5 h-3.5" />
-                        <span>+</span>
+                        <span className="hidden sm:inline">+</span>
                       </button>
                     </div>
                   </div>

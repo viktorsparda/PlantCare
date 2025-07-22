@@ -1,18 +1,11 @@
+
 # 🌱 PlantCare - Identificador de Plantas con AI
 
 **PlantCare** es una aplicación web moderna que utiliza inteligencia artificial para identificar plantas y ayudar en su cuidado diario.
 
-## ✨ Caracterís## 📞 Soporte
+## ✨ Características
 
-- 🐛 Issues: [GitHub Issues](https://github.com/viktorsparda/PlantCare/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/viktorsparda/PlantCare/discussions)
-- 📧 Email: Contacta a través de GitHub
-
-## 🔗 Links Útiles
-
-- 🚀 **Demo Live**: [https://plant-care-blond.vercel.app](https://plant-care-blond.vercel.app)
-- 🔧 **API Backend**: [https://plantcare-production-52be.up.railway.app](https://plantcare-production-52be.up.railway.app)
-- 📂 **Repositorio**: [https://github.com/viktorsparda/PlantCare](https://github.com/viktorsparda/PlantCare)🔍 **Identificación de Plantas**
+### 🔍 **Identificación de Plantas**
 - Identificación automática usando Google Gemini AI
 - Análisis de imágenes con alta precisión
 - Información detallada sobre especies
@@ -81,44 +74,32 @@ cd backend && npm start
 ```
 PlantCare/
 ├── 📁 components/          # Componentes React
-│   ├── Layout.js          # Layout principal
-│   ├── PlantIdentifier.js # Identificador de plantas
-│   ├── MyPlants.js        # Galería de plantas
-│   └── Recordatorios.js   # Sistema de recordatorios
-├── 📁 pages/              # Páginas Next.js
-│   ├── index.js           # Página principal
-│   ├── dashboard.js       # Dashboard principal
-│   ├── perfil.js          # Perfil de usuario
-│   └── plant/[id].js      # Detalles de planta
-├── 📁 backend/            # Servidor Express
-│   ├── server.js          # Servidor principal
-│   ├── config.js          # Configuración
-│   └── plants.db          # Base de datos SQLite
-├── 📁 styles/             # Estilos CSS
-├── 📁 lib/                # Utilidades y configuración
-└── 📁 context/            # Context API
+├── 📁 pages/               # Páginas Next.js
+├── 📁 backend/             # Servidor Express
+├── 📁 styles/              # Estilos CSS
+├── 📁 lib/                 # Utilidades y configuración
+└── 📁 context/             # Context API
 ```
 
-## 🛠️ Tecnologías
+## 🛠️ Tecnologías y Herramientas
 
 ### Frontend
-- **Framework**: Next.js 15
-- **UI**: React 19 + Tailwind CSS
-- **Autenticación**: Firebase Auth
-- **Estado**: Context API + Custom Hooks
-- **Iconos**: Emojis nativos
+- Next.js 15
+- React 19 + Tailwind CSS
+- Firebase Auth
+- Context API + Custom Hooks
 
 ### Backend
-- **Servidor**: Node.js + Express
-- **Base de datos**: SQLite
-- **IA**: Google Gemini AI
-- **Autenticación**: Firebase Admin
-- **Almacenamiento**: Local file system
+- Node.js + Express
+- SQLite
+- Google Gemini AI
+- Firebase Admin
+- Almacenamiento local
 
-### Herramientas
-- **Testing**: Jest + React Testing Library
-- **Linting**: ESLint + Prettier
-- **Deployment**: Vercel + Railway
+### DevOps y Utilidades
+- Testing: Jest + React Testing Library
+- Linting: ESLint + Prettier
+- Deployment: Vercel (frontend) + Railway (backend)
 
 ## 🔧 Configuración Avanzada
 
@@ -194,6 +175,8 @@ railway up
 
 Ver [CHANGELOG.md](CHANGELOG.md) para historial de cambios.
 
+---
+
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para detalles.
@@ -210,36 +193,16 @@ Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para detalles.
 
 ## 📞 Soporte
 
--  Issues: [GitHub Issues](https://github.com/viktorsparda/PlantCare/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/viktorsparda/PlantCare/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/viktorsparda/PlantCare/discussions)
 - 📧 Email: Contacta a través de GitHub
 
 ## 🔗 Links Útiles
 
-- � **Demo Live**: [https://plant-care-blond.vercel.app](https://plant-care-blond.vercel.app)
-- � **API Backend**: [https://plantcare-production-52be.up.railway.app](https://plantcare-production-52be.up.railway.app)
+- 🚀 **Demo Live**: [https://plant-care-blond.vercel.app](https://plant-care-blond.vercel.app)
+- 🔧 **API Backend**: [https://plantcare-production-52be.up.railway.app](https://plantcare-production-52be.up.railway.app)
 - 📂 **Repositorio**: [https://github.com/viktorsparda/PlantCare](https://github.com/viktorsparda/PlantCare)
 
 ---
 
 **Desarrollado con ❤️ por la comunidad para los amantes de las plantas** 🌿✨
-
-## 🌐 Enlaces de Despliegue
-
-### Frontend (Vercel)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fviktorsparda%2FPlantCare)
-
-### Backend (Railway)
-### Backend (Railway)
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/viktorsparda/PlantCare)
-
----
-
-## 📱 Demo en Vivo
-
-🔗 **Aplicación**: [https://plant-care-blond.vercel.app](https://plant-care-blond.vercel.app)
-🔗 **API Backend**: [https://plantcare-production-52be.up.railway.app](https://plantcare-production-52be.up.railway.app)
-
----
-
-**¡Disfruta cuidando tus plantas con PlantCare! 🌱✨**

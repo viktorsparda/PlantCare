@@ -44,28 +44,34 @@
 ### Instalación
 ```bash
 # Clonar repositorio
-git clone https://github.com/tu-usuario/plantcare-web.git
-cd plantcare-web
+git clone https://github.com/viktorsparda/PlantCare.git
+cd PlantCare
 
-# Instalar dependencias
-npm run setup
+# Instalar dependencias del frontend
+npm install
+
+# Instalar dependencias del backend
+cd backend
+npm install
+cd ..
 
 # Configurar variables de entorno
 cp .env.example .env.local
 cp backend/.env.example backend/.env
 
 # Iniciar aplicación completa
-start-plantcare.bat
+npm run dev &
+cd backend && npm start
 ```
 
 ### Acceso
 - **Frontend**: http://localhost:3000
-- **Backend**: http://localhost:3001
+- **Backend**: http://localhost:4000
 
 ## 📁 Estructura del Proyecto
 
 ```
-plantcare-web/
+PlantCare/
 ├── 📁 components/          # Componentes React
 │   ├── Layout.js          # Layout principal
 │   ├── PlantIdentifier.js # Identificador de plantas
@@ -111,15 +117,16 @@ plantcare-web/
 ### Variables de Entorno
 ```env
 # Frontend (.env.local)
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=https://plantcare-production-52be.up.railway.app
 NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_PLANTNET_API_KEY=your-plantnet-api-key
 
 # Backend (.env)
 GEMINI_API_KEY=your-gemini-api-key
-FIREBASE_PROJECT_ID=your-project-id
-PORT=3001
+FIREBASE_SERVICE_ACCOUNT=your-firebase-service-account-json
+PORT=4000
 ```
 
 ### Firebase Setup
@@ -152,8 +159,9 @@ vercel --prod
 ### Railway (Backend)
 ```bash
 # Deploy backend
-cd backend
-railway deploy
+railway login
+railway link
+railway up
 ```
 
 ## 📈 Estadísticas
@@ -187,21 +195,22 @@ Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para detalles.
 - [Next.js](https://nextjs.org/) - Framework React
 - [Firebase](https://firebase.google.com/) - Autenticación y backend
 - [Google Gemini](https://ai.google.dev/) - AI para identificación
+- [PlantNet API](https://my.plantnet.org/) - API de identificación de plantas
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [Vercel](https://vercel.com/) - Deployment
+- [Vercel](https://vercel.com/) - Deployment Frontend
+- [Railway](https://railway.app/) - Deployment Backend
 
 ## 📞 Soporte
 
-- 📧 Email: support@plantcare.com
-- 🐛 Issues: [GitHub Issues](https://github.com/tu-usuario/plantcare-web/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/tu-usuario/plantcare-web/discussions)
+-  Issues: [GitHub Issues](https://github.com/viktorsparda/PlantCare/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/viktorsparda/PlantCare/discussions)
+- 📧 Email: Contacta a través de GitHub
 
 ## 🔗 Links Útiles
 
-- [📚 Documentación](https://plantcare-docs.vercel.app)
-- [🚀 Demo Live](https://plantcare-web.vercel.app)
-- [📊 Status Page](https://status.plantcare.com)
-- [🎨 Design System](https://design.plantcare.com)
+- � **Demo Live**: [https://plant-care-blond.vercel.app](https://plant-care-blond.vercel.app)
+- � **API Backend**: [https://plantcare-production-52be.up.railway.app](https://plantcare-production-52be.up.railway.app)
+- 📂 **Repositorio**: [https://github.com/viktorsparda/PlantCare](https://github.com/viktorsparda/PlantCare)
 
 ---
 
@@ -213,7 +222,7 @@ Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para detalles.
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fviktorsparda%2FPlantCare)
 
 ### Backend (Railway)
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/YOUR_TEMPLATE_ID)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/viktorsparda/PlantCare)
 
 ---
 

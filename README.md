@@ -207,67 +207,21 @@ Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para detalles.
 
 **Desarrollado con ❤️ por la comunidad para los amantes de las plantas** 🌿✨
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftu-usuario%2Fplantcare-web)
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/tu-usuario/plantcare-web)
-        notes TEXT,
-        image TEXT,
-        lastWatered TEXT,
-        wateringFrequency INTEGER
-      )`);
-    });
-    ```
+## 🌐 Enlaces de Despliegue
+
+### Frontend (Vercel)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fviktorsparda%2FPlantCare)
+
+### Backend (Railway)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/YOUR_TEMPLATE_ID)
 
 ---
 
-### 3. Vistas y Plantillas (Frontend con Next.js)
+## 📱 Demo en Vivo
 
-El frontend se encarga de la capa de presentación. En Next.js, los componentes de React actúan como Vistas y Plantillas.
+🔗 **Aplicación**: [https://plant-care-blond.vercel.app](https://plant-care-blond.vercel.app)
+🔗 **API Backend**: [https://plantcare-production-52be.up.railway.app](https://plantcare-production-52be.up.railway.app)
 
-#### **Plantillas (Templates)**
+---
 
-Una plantilla es una estructura base que se reutiliza en varias páginas. En este proyecto, `components/Layout.js` es la plantilla principal.
-
-*   **Implementación:** `Layout.js` define la estructura común de la página, incluyendo la barra lateral de navegación (`<aside>`) y el encabezado (`<header>`). Envuelve el contenido específico de cada página (representado por `{children}`).
-
-*   **Código Identificado (`components/Layout.js`):**
-    ```javascript
-    export default function Layout({ children, pageTitle }) {
-      return (
-        <div className="min-h-screen flex ...">
-          <aside ...>
-            {/* Barra de navegación lateral */}
-          </aside>
-          <div className="flex-1 flex flex-col ...">
-            <header ...>
-              {/* Encabezado de la página */}
-            </header>
-            <main className="flex-1 px-8 py-8">{children}</main>
-            <HelpButton />
-          </div>
-        </div>
-      );
-    }
-    ```
-
-#### **Vistas (Views)**
-
-Una vista es un componente que renderiza una porción específica de la interfaz, a menudo mostrando datos obtenidos del backend. `components/MyPlants.js` es un excelente ejemplo.
-
-*   **Implementación:** Este componente obtiene la lista de plantas del usuario desde la API (`/api/plants/:userId`), la almacena en un estado (`plants`) y luego la renderiza como una lista de tarjetas.
-
-*   **Código Identificado (`components/MyPlants.js`):**
-    ```javascript
-    // ...
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {plants.map((plant) => (
-          <div key={plant.id} className="relative ...">
-            {/* ...código para mostrar la tarjeta de la planta... */}
-            <h3 className="text-xl font-bold text-green-800 dark:text-green-200">{plant.name}</h3>
-            <p className="text-md text-gray-600 dark:text-gray-400">{plant.species}</p>
-            {/* ...más detalles de la planta... */}
-          </div>
-        ))}
-      </div>
-    );
-    ```
+**¡Disfruta cuidando tus plantas con PlantCare! 🌱✨**

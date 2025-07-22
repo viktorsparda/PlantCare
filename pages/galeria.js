@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Layout from '@/components/Layout';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
+import { usePlantsStore } from '../store/plantsStore';
 import { 
   FiImage, 
   FiSearch, 
@@ -19,15 +20,15 @@ import {
   FiChevronRight,
   FiMaximize2,
   FiDownload,
-  FiStar
+  FiStar,
+  FiTrash2
 } from 'react-icons/fi';
 
 export default function GaleriaPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [plants, setPlants] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  // Estados locales (solo UI)
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState('all'); // 'all', 'recent', 'species'
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -40,6 +41,13 @@ export default function GaleriaPage() {
   const [allPhotos, setAllPhotos] = useState([]); // Todas las fotos de la planta (principal + adicionales)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
+  
+  // Estados para eliminación de fotos
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingPhoto, setDeletingPhoto] = useState(false);
+
+  // Zustand store
+  const store = usePlantsStore();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -48,35 +56,24 @@ export default function GaleriaPage() {
     }
 
     if (user) {
-      loadPlants();
+      store.loadPlants(user);
     }
   }, [user, authLoading, router]);
 
-  const loadPlants = async () => {
-    try {
-      setLoading(true);
-      const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      
-      const response = await fetch(`${apiUrl}/plants`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPlants(data);
-      } else {
-        throw new Error('Error al cargar las plantas');
-      }
-    } catch (err) {
-      console.error('Error loading plants:', err);
-      setError('No se pudieron cargar las plantas');
-    } finally {
-      setLoading(false);
+  // Helper function para construir URLs de fotos (para compatibilidad)
+  const buildPhotoURL = (photoPath) => {
+    if (!photoPath) return '/default-plant.jpg';
+    if (photoPath.startsWith('http')) return photoPath;
+    
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    if (!photoPath.includes('/') && !photoPath.includes('\\')) {
+      return `${apiUrl}/uploads/${photoPath}`;
     }
+    const cleanPath = photoPath.replace(/^(uploads[\\/]?|\/)/, '');
+    return `${apiUrl}/uploads/${cleanPath}`;
   };
 
-  const filteredPlants = plants.filter(plant => {
+  const filteredPlants = store.plants.filter(plant => {
     const matchesSearch = plant.personalName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          plant.commonName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          plant.sciName?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -101,59 +98,12 @@ export default function GaleriaPage() {
   };
 
   // Función para abrir el visor de fotos
-  const openPhotoViewer = async (plant, startIndex = 0) => {
-    setLoadingPhotos(true);
+  const openPhotoViewer = (plant, startIndex = 0) => {
     setViewerPlant(plant);
-    
-    try {
-      const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      
-      // Función helper para construir URLs correctamente
-      const buildPhotoURL = (photoPath) => {
-        if (!photoPath) return '/default-plant.jpg';
-        
-        // Si ya es una URL completa, usarla tal como está
-        if (photoPath.startsWith('http')) {
-          return photoPath;
-        }
-        
-        // Normalizar la ruta removiendo prefijos redundantes
-        const cleanPath = photoPath.replace(/^(uploads[\\/]?|\/)/, '');
-        return `${apiUrl}/uploads/${cleanPath}`;
-      };
-      
-      // Cargar fotos adicionales
-      const response = await fetch(`${apiUrl}/plants/${plant.id}/photos`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      const additionalPhotosData = response.ok ? await response.json() : [];
-      
-      const additionalPhotos = additionalPhotosData.map(photo => ({
-        ...photo,
-        photoURL: buildPhotoURL(photo.photoURL)
-      }));
-      
-      // Combinar foto principal con fotos adicionales
-      const mainPhoto = {
-        id: `main-${plant.id}`,
-        photoURL: buildPhotoURL(plant.photoPath),
-        description: plant.personalName,
-        uploadDate: plant.date || new Date().toISOString(),
-        isMain: true
-      };
-
-      const allPhotos = [mainPhoto, ...additionalPhotos];
-      setAllPhotos(allPhotos);
-      setCurrentPhotoIndex(startIndex);
-      setShowPhotoViewer(true);
-    } catch (error) {
-      console.error('Error loading photos:', error);
-      toast.error('Error al cargar las fotos');
-    } finally {
-      setLoadingPhotos(false);
-    }
+    const allPhotos = store.getAllPhotosForPlant(plant.id);
+    setAllPhotos(allPhotos);
+    setCurrentPhotoIndex(startIndex);
+    setShowPhotoViewer(true);
   };
 
   const closePhotoViewer = () => {
@@ -175,23 +125,22 @@ export default function GaleriaPage() {
     }
   };
 
-  // Función para cambiar la foto principal
-  const setAsMainPhoto = async (photoIndex) => {
+  // Función para cambiar la foto principal - SIMPLIFICADO Y ROBUSTO
+  const handleSetAsMainPhoto = async (photoIndex) => {
     try {
       const photoToSetAsMain = allPhotos[photoIndex];
       
-      // Validar que la foto existe
+      // Validaciones básicas
       if (!photoToSetAsMain) {
         toast.error('Foto no encontrada');
         return;
       }
       
-      // Solo permitir cambiar fotos adicionales como principales (no la que ya es principal)
       if (photoToSetAsMain.isMain) {
-        return; // No hacer nada si ya es la principal
+        return; // Ya es la principal
       }
 
-      // Verificar que sea una foto adicional real (no una foto principal convertida)
+      // Verificar que sea una foto adicional real
       const photoId = String(photoToSetAsMain.id || '');
       if (photoId.startsWith('main-') || photoId.startsWith('additional-')) {
         toast.error('No se puede cambiar esta foto como principal');
@@ -200,93 +149,85 @@ export default function GaleriaPage() {
 
       const loadingToast = toast.loading('Cambiando foto principal...');
       
-      const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      // Usar Zustand store - SIN optimistic update
+      const result = await store.setAsMainPhoto(user, viewerPlant.id, photoToSetAsMain.id);
       
-      // Función helper para construir URLs correctamente
-      const buildPhotoURL = (photoPath) => {
-        if (!photoPath) return '/default-plant.jpg';
-        if (photoPath.startsWith('http')) return photoPath;
-        const cleanPath = photoPath.replace(/^(uploads[\\/]?|\/)/, '');
-        return `${apiUrl}/uploads/${cleanPath}`;
-      };
-      
-      // Usar el endpoint que intercambia las fotos
-      const response = await fetch(`${apiUrl}/plants/${viewerPlant.id}/set-main-photo`, {
-        method: 'PUT',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          photoId: photoToSetAsMain.id 
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        toast.success('Foto principal actualizada exitosamente', { id: loadingToast });
+      if (result.success) {
+        // Actualizar el visor con los nuevos datos desde el store
+        const updatedAllPhotos = store.getAllPhotosForPlant(viewerPlant.id);
+        setAllPhotos(updatedAllPhotos);
+        setCurrentPhotoIndex(0); // Ir a la nueva foto principal
         
-        // Recargar todas las fotos desde el servidor para asegurar consistencia
-        try {
-          // Cargar fotos adicionales actualizadas
-          const photosResponse = await fetch(`${apiUrl}/plants/${viewerPlant.id}/photos`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-
-          const additionalPhotosData = photosResponse.ok ? await photosResponse.json() : [];
-          
-          const additionalPhotos = additionalPhotosData.map(photo => ({
-            ...photo,
-            photoURL: buildPhotoURL(photo.photoPath)
-          }));
-          
-          // Crear nueva foto principal con los datos actualizados
-          const mainPhoto = {
-            id: `main-${viewerPlant.id}`,
-            photoURL: buildPhotoURL(result.newMainPhoto),
-            description: viewerPlant.personalName,
-            uploadDate: viewerPlant.date || new Date().toISOString(),
-            isMain: true
-          };
-
-          // Combinar todas las fotos actualizadas
-          const allPhotosUpdated = [mainPhoto, ...additionalPhotos];
-          
-          // Actualizar estados
-          setAllPhotos(allPhotosUpdated);
-          setCurrentPhotoIndex(0); // Ir a la nueva foto principal
-          
-          // Actualizar el estado de plantas para la galería
-          setPlants(prevPlants => 
-            prevPlants.map(plant => 
-              plant.id === viewerPlant.id 
-                ? { ...plant, photoPath: result.newMainPhoto }
-                : plant
-            )
-          );
-          
-          // Actualizar viewerPlant
-          setViewerPlant(prev => ({ 
-            ...prev, 
-            photoPath: result.newMainPhoto
-          }));
-          
-        } catch (reloadError) {
-          console.error('Error reloading photos after main photo change:', reloadError);
-          // Si falla la recarga, cerrar el visor y recargar plantas
-          toast.info('Foto principal cambiada. Recargando galería...');
-          closePhotoViewer();
-          await loadPlants();
+        // Actualizar viewerPlant con datos actualizados
+        const updatedPlant = store.plants.find(p => p.id === viewerPlant.id);
+        if (updatedPlant) {
+          setViewerPlant(updatedPlant);
         }
         
+        toast.success('¡Foto principal actualizada correctamente!', { id: loadingToast });
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al actualizar la foto principal');
+        toast.error(result.error || 'Error al cambiar la foto principal', { id: loadingToast });
       }
     } catch (error) {
       console.error('Error setting main photo:', error);
       toast.error('Error al cambiar la foto principal');
+    }
+  };
+
+  // Función para eliminar foto - SIMPLIFICADO
+  const handleDeletePhoto = async () => {
+    if (!viewerPlant || !allPhotos[currentPhotoIndex]) return;
+    
+    const currentPhoto = allPhotos[currentPhotoIndex];
+    
+    // No permitir eliminar la foto principal
+    if (currentPhoto.isMain) {
+      toast.error('No se puede eliminar la foto principal');
+      setShowDeleteModal(false);
+      return;
+    }
+    
+    // Verificar que la foto tenga un ID válido
+    const photoId = String(currentPhoto.id || '');
+    if (photoId.startsWith('main-') || photoId.startsWith('additional-')) {
+      toast.error('No se puede eliminar esta foto');
+      setShowDeleteModal(false);
+      return;
+    }
+
+    setDeletingPhoto(true);
+    const loadingToast = toast.loading('Eliminando foto...');
+    
+    try {
+      // Usar Zustand store - SIN optimistic update
+      const result = await store.deletePhoto(user, viewerPlant.id, currentPhoto.id);
+      
+      if (result.success) {
+        toast.success('Foto eliminada exitosamente', { id: loadingToast });
+        
+        // Actualizar el visor con datos del store
+        const updatedPhotos = store.getAllPhotosForPlant(viewerPlant.id);
+        setAllPhotos(updatedPhotos);
+        
+        // Ajustar el índice si es necesario
+        if (currentPhotoIndex >= updatedPhotos.length) {
+          setCurrentPhotoIndex(Math.max(0, updatedPhotos.length - 1));
+        }
+        
+        // Si no quedan fotos adicionales, cerrar el visor
+        if (updatedPhotos.length <= 1) {
+          closePhotoViewer();
+        }
+        
+        setShowDeleteModal(false);
+      } else {
+        toast.error(result.error || 'Error al eliminar la foto', { id: loadingToast });
+      }
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      toast.error('Error al eliminar la foto', { id: loadingToast });
+    } finally {
+      setDeletingPhoto(false);
     }
   };
 
@@ -322,55 +263,21 @@ export default function GaleriaPage() {
     const loadingToast = toast.loading(`Subiendo ${files.length} foto(s)...`);
 
     try {
-      const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      // Usar Zustand store
+      const result = await store.addPhotos(user, selectedPlant.id, files);
       
-      console.log('API URL:', apiUrl);
-      console.log('Plant ID:', selectedPlant.id);
-      console.log('Files to upload:', files.length);
-      
-      const uploadPromises = files.map(async (file) => {
-        console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
-        
-        const formData = new FormData();
-        formData.append('photo', file);
-        formData.append('plantId', selectedPlant.id);
-        formData.append('description', `Foto adicional de ${selectedPlant.personalName}`);
-
-        const response = await fetch(`${apiUrl}/plants/${selectedPlant.id}/photos`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: formData,
-        });
-
-        console.log('Response status:', response.status, 'Status text:', response.statusText);
-
-        if (!response.ok) {
-          let errorMessage = `Error ${response.status}: ${response.statusText}`;
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.error || errorMessage;
-          } catch (jsonError) {
-            // Si no es JSON válido, usar el status text
-            console.error('Response is not valid JSON:', jsonError);
-          }
-          throw new Error(errorMessage);
-        }
-
-        return await response.json();
-      });
-
-      await Promise.all(uploadPromises);
-      
-      toast.success(
-        `¡${files.length} foto(s) subida(s) exitosamente!`,
-        { id: loadingToast }
-      );
-
-      // Recargar plantas para mostrar las nuevas fotos
-      await loadPlants();
-      setShowPhotoModal(false);
-      
+      if (result.success) {
+        toast.success(
+          `¡${files.length} foto(s) subida(s) exitosamente!`,
+          { id: loadingToast }
+        );
+        setShowPhotoModal(false);
+      } else {
+        toast.error(
+          `Error al subir las fotos: ${result.error}`,
+          { id: loadingToast }
+        );
+      }
     } catch (error) {
       console.error('Error uploading photos:', error);
       toast.error(
@@ -382,7 +289,7 @@ export default function GaleriaPage() {
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading || store.loading) {
     return (
       <Layout pageTitle="Galería">
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -395,7 +302,7 @@ export default function GaleriaPage() {
     );
   }
 
-  if (error) {
+  if (store.error) {
     return (
       <Layout pageTitle="Galería">
         <div className="max-w-4xl mx-auto p-6">
@@ -404,9 +311,9 @@ export default function GaleriaPage() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Error al cargar la galería
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">{store.error}</p>
             <button
-              onClick={loadPlants}
+              onClick={() => store.loadPlants(user)}
               className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors"
             >
               Intentar de nuevo
@@ -465,7 +372,7 @@ export default function GaleriaPage() {
               <FiImage className="text-green-500 text-xl mr-3" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{plants.length}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{store.plants.length}</p>
               </div>
             </div>
           </div>
@@ -484,7 +391,7 @@ export default function GaleriaPage() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Esta semana</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {plants.filter(plant => {
+                  {store.plants.filter(plant => {
                     const plantDate = new Date(plant.date);
                     const weekAgo = new Date();
                     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -500,7 +407,7 @@ export default function GaleriaPage() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Especies</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  {new Set(plants.map(p => p.sciName)).size}
+                  {new Set(store.plants.map(p => p.sciName)).size}
                 </p>
               </div>
             </div>
@@ -536,24 +443,75 @@ export default function GaleriaPage() {
                 key={plant.id}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl border border-gray-200 dark:border-gray-700"
               >
-                {/* Imagen */}
+                {/* Grid de miniaturas de fotos */}
                 <div className="relative aspect-square">
-                  <Image
-                    src={plant.photoPath 
-                      ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/uploads/${plant.photoPath.replace(/^uploads[\\/]/, '')}` 
-                      : '/default-plant.jpg'
+                  {(() => {
+                    const allPhotos = store.getAllPhotosForPlant(plant.id);
+                    
+                    if (allPhotos.length === 1) {
+                      // Solo foto principal - mostrar como antes
+                      return (
+                        <>
+                          <Image
+                            src={allPhotos[0].photoURL}
+                            alt={plant.personalName}
+                            layout="fill"
+                            objectFit="cover"
+                            className="transition-transform duration-300"
+                          />
+                          {/* Indicador de una sola foto */}
+                          <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                            <FiImage className="w-3 h-3" />
+                            <span>1</span>
+                          </div>
+                        </>
+                      );
+                    } else {
+                      // Múltiples fotos - mostrar grid de miniaturas
+                      return (
+                        <>
+                          <div className="grid grid-cols-2 gap-1 h-full p-1">
+                            {allPhotos.slice(0, 4).map((photo, index) => (
+                              <div 
+                                key={photo.id}
+                                className="relative overflow-hidden rounded-lg cursor-pointer group hover:scale-105 transition-transform duration-200"
+                                onClick={() => openPhotoViewer(plant, index)}
+                              >
+                                <img
+                                  src={photo.photoURL}
+                                  alt={`Miniatura ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                                {/* Overlay hover */}
+                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <FiImage className="w-4 h-4 text-white" />
+                                </div>
+                                {/* Indicador de foto principal */}
+                                {photo.isMain && (
+                                  <div className="absolute top-1 right-1 bg-yellow-500 rounded-full p-1">
+                                    <FiStar className="w-2 h-2 text-white" fill="currentColor" />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Indicador de total de fotos */}
+                          <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                            <FiImage className="w-3 h-3" />
+                            <span>{allPhotos.length}</span>
+                          </div>
+                          
+                          {/* Si hay más de 4 fotos, mostrar contador en la esquina inferior derecha */}
+                          {allPhotos.length > 4 && (
+                            <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-medium">
+                              +{allPhotos.length - 4}
+                            </div>
+                          )}
+                        </>
+                      );
                     }
-                    alt={plant.personalName}
-                    layout="fill"
-                    objectFit="cover"
-                    className="transition-transform duration-300"
-                  />
-                  
-                  {/* Indicador de múltiples fotos en la esquina superior derecha */}
-                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                    <FiImage className="w-3 h-3" />
-                    <span>1+</span>
-                  </div>
+                  })()}
                   
                   {/* Overlay con botones de acción en la parte inferior */}
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2">
@@ -731,7 +689,7 @@ export default function GaleriaPage() {
                 <div className="flex items-center gap-1 sm:gap-2">
                   {/* Botón para cambiar foto principal */}
                   <button
-                    onClick={() => setAsMainPhoto(currentPhotoIndex)}
+                    onClick={() => handleSetAsMainPhoto(currentPhotoIndex)}
                     className={`p-2 sm:p-2 rounded-full transition-all hover:scale-110 active:scale-95 touch-manipulation ${
                       allPhotos[currentPhotoIndex].isMain
                         ? 'text-yellow-400 hover:text-yellow-300'
@@ -745,6 +703,25 @@ export default function GaleriaPage() {
                       fill={allPhotos[currentPhotoIndex].isMain ? 'currentColor' : 'none'} 
                     />
                   </button>
+                  
+                  {/* Botón de eliminar foto */}
+                  {!allPhotos[currentPhotoIndex].isMain && (
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      disabled={deletingPhoto}
+                      className={`text-red-400 hover:text-red-300 active:text-red-500 p-2 rounded-lg bg-black/20 hover:bg-black/40 active:bg-black/60 transition-all touch-manipulation ${
+                        deletingPhoto ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      title="Eliminar foto"
+                      aria-label="Eliminar foto"
+                    >
+                      {deletingPhoto ? (
+                        <FiLoader className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                      ) : (
+                        <FiTrash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      )}
+                    </button>
+                  )}
                   
                   {/* Botón de descarga */}
                   <button
@@ -877,6 +854,61 @@ export default function GaleriaPage() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Modal de confirmación para eliminar foto */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full mx-4 overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mr-4">
+                    <FiTrash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      ¿Eliminar foto?
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Esta acción no se puede deshacer
+                    </p>
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  ¿Estás seguro de que deseas eliminar esta foto de <strong>{viewerPlant?.personalName}</strong>? 
+                  La foto se eliminará permanentemente de tu galería.
+                </p>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deletingPhoto}
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleDeletePhoto}
+                    disabled={deletingPhoto}
+                    className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {deletingPhoto ? (
+                      <>
+                        <FiLoader className="w-4 h-4 animate-spin" />
+                        Eliminando...
+                      </>
+                    ) : (
+                      <>
+                        <FiTrash2 className="w-4 h-4" />
+                        Eliminar
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

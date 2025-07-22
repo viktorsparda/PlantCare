@@ -6,7 +6,7 @@ export default function App({ Component, pageProps }) {
   return (
     <AuthProvider>
       <Toaster
-        position="bottom-center"
+        position="top-center"
         toastOptions={{
           // Define default options
           duration: 5000,

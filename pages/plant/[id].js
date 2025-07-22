@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
 import Layout from '../../components/Layout';
 import ConfirmModal from '../../components/ConfirmModal';
+import toast from 'react-hot-toast';
 import { 
   FiTag, 
   FiCalendar, 
@@ -20,7 +21,12 @@ import {
   FiTarget,
   FiTrash2,
   FiSearch,
-  FiImage
+  FiImage,
+  FiX,
+  FiChevronLeft,
+  FiChevronRight,
+  FiDownload,
+  FiStar
 } from 'react-icons/fi';
 import { 
   BiWater,
@@ -1062,11 +1068,82 @@ export default function PlantDetailPage() {
   const [apiMessage, setApiMessage] = useState(null);
   const [additionalPhotos, setAdditionalPhotos] = useState([]);
   const [loadingPhotos, setLoadingPhotos] = useState(true);
+  
+  // Estados para el visor de fotos
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false);
+  const [allPhotos, setAllPhotos] = useState([]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   // Función para capitalizar texto
   const capitalizeText = (text) => {
     if (!text || text === 'No especificada' || text === 'No especificado') return text;
     return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+
+  // Función helper para construir URLs correctamente
+  const buildPhotoURL = (photoPath) => {
+    if (!photoPath) return '/default-plant.jpg';
+    
+    // Si ya es una URL completa, usarla tal como está
+    if (photoPath.startsWith('http')) {
+      return photoPath;
+    }
+    
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    
+    // Si es solo un nombre de archivo sin ruta, agregarlo a uploads
+    if (!photoPath.includes('/') && !photoPath.includes('\\')) {
+      return `${apiUrl}/uploads/${photoPath}`;
+    }
+    
+    // Normalizar la ruta removiendo prefijos redundantes
+    const cleanPath = photoPath.replace(/^(uploads[\\/]?|\/)/, '');
+    return `${apiUrl}/uploads/${cleanPath}`;
+  };
+
+  // Función para abrir el visor de fotos
+  const openPhotoViewer = (startIndex = 0) => {
+    if (!plant) {
+      console.error('Plant data not available');
+      return;
+    }
+
+    // Construir el array completo de fotos (principal + adicionales)
+    const mainPhoto = {
+      id: `main-${plant.id}`,
+      photoURL: buildPhotoURL(plant.photoPath),
+      description: plant.personalName,
+      uploadDate: plant.date || new Date().toISOString(),
+      isMain: true
+    };
+
+    const allPhotosArray = [mainPhoto, ...additionalPhotos];
+    console.log('Opening photo viewer:', { startIndex, allPhotosArray, additionalPhotos });
+    
+    setAllPhotos(allPhotosArray);
+    setCurrentPhotoIndex(startIndex);
+    setShowPhotoViewer(true);
+  };
+
+  // Función para cerrar el visor
+  const closePhotoViewer = () => {
+    console.log('Closing photo viewer');
+    setShowPhotoViewer(false);
+    setAllPhotos([]);
+    setCurrentPhotoIndex(0);
+  };
+
+  // Función para navegar entre fotos
+  const navigatePhoto = (direction) => {
+    if (direction === 'prev') {
+      setCurrentPhotoIndex((prev) => 
+        prev > 0 ? prev - 1 : allPhotos.length - 1
+      );
+    } else {
+      setCurrentPhotoIndex((prev) => 
+        prev < allPhotos.length - 1 ? prev + 1 : 0
+      );
+    }
   };
 
   useEffect(() => {
@@ -1148,7 +1225,33 @@ export default function PlantDetailPage() {
 
         if (response.ok) {
           const photos = await response.json();
-          setAdditionalPhotos(photos);
+          
+          // Función helper para construir URLs correctamente
+          const buildPhotoURL = (photoPath) => {
+            if (!photoPath) return '/default-plant.jpg';
+            
+            // Si ya es una URL completa, usarla tal como está
+            if (photoPath.startsWith('http')) {
+              return photoPath;
+            }
+            
+            // Si es solo un nombre de archivo sin ruta, agregarlo a uploads
+            if (!photoPath.includes('/') && !photoPath.includes('\\')) {
+              return `${apiUrl}/uploads/${photoPath}`;
+            }
+            
+            // Normalizar la ruta removiendo prefijos redundantes
+            const cleanPath = photoPath.replace(/^(uploads[\\/]?|\/)/, '');
+            return `${apiUrl}/uploads/${cleanPath}`;
+          };
+          
+          // Mapear las fotos para construir URLs correctas
+          const photosWithCorrectURLs = photos.map(photo => ({
+            ...photo,
+            photoURL: buildPhotoURL(photo.photoPath || photo.photoURL)
+          }));
+          
+          setAdditionalPhotos(photosWithCorrectURLs);
         }
       } catch (err) {
         console.error('Error loading additional photos:', err);
@@ -1159,6 +1262,30 @@ export default function PlantDetailPage() {
 
     fetchAdditionalPhotos();
   }, [id, user]);
+
+  // Controles de teclado para el visor
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (!showPhotoViewer || allPhotos.length === 0) return;
+      
+      switch (e.key) {
+        case 'Escape':
+          closePhotoViewer();
+          break;
+        case 'ArrowLeft':
+          navigatePhoto('prev');
+          break;
+        case 'ArrowRight':
+          navigatePhoto('next');
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [showPhotoViewer, allPhotos.length]);
 
 
   if (loadingPlant) {
@@ -1197,14 +1324,24 @@ export default function PlantDetailPage() {
           <div className="flex flex-col md:flex-row gap-6">
             {/* Imagen de la planta */}
             <div className="md:w-80 flex-shrink-0">
-              <div className="relative aspect-square rounded-xl shadow-lg overflow-hidden">
-                <Image
-                  src={plant.photoPath ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/uploads/${plant.photoPath.replace(/^uploads[\\/]/, '')}` : '/default-plant.jpg'}
+              <div 
+                className="relative aspect-square rounded-xl shadow-lg overflow-hidden cursor-pointer group"
+                onClick={() => openPhotoViewer(0)} // Foto principal está en índice 0
+              >
+                <img
+                  src={buildPhotoURL(plant.photoPath)}
                   alt={plant.personalName}
-                  layout="fill"
-                  objectFit="cover"
-                  className="transition-transform duration-300 hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <p className="text-white text-sm font-medium">Foto principal</p>
+                  </div>
+                </div>
+                {/* Indicador de que es clickeable */}
+                <div className="absolute top-2 right-2 bg-black/60 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <FiImage className="w-4 h-4 text-white" />
+                </div>
               </div>
             </div>
             
@@ -1324,13 +1461,24 @@ export default function PlantDetailPage() {
         {(additionalPhotos.length > 0 || !loadingPhotos) && (
           <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-2xl shadow-lg p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
-                <FiImage className="w-6 h-6 mr-2 text-green-500" />
-                Galería de Fotos
-              </h2>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {additionalPhotos.length} foto{additionalPhotos.length !== 1 ? 's' : ''}
-              </span>
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+                  <FiImage className="w-6 h-6 mr-2 text-green-500" />
+                  Galería de Fotos
+                </h2>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {additionalPhotos.length} foto{additionalPhotos.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              
+              {/* Botón para ir a la galería completa */}
+              <button
+                onClick={() => router.push('/galeria')}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center gap-2 shadow-md text-sm"
+              >
+                <FiImage className="w-4 h-4" />
+                Ver Galería Completa
+              </button>
             </div>
             
             {loadingPhotos ? (
@@ -1339,16 +1487,20 @@ export default function PlantDetailPage() {
               </div>
             ) : additionalPhotos.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {additionalPhotos.map((photo) => (
-                  <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                {additionalPhotos.map((photo, index) => (
+                  <div 
+                    key={photo.id} 
+                    className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer group"
+                    onClick={() => openPhotoViewer(index + 1)} // +1 porque la foto principal está en el índice 0
+                  >
                     <Image
                       src={photo.photoURL}
                       alt={`Foto adicional de ${plant.personalName}`}
                       layout="fill"
                       objectFit="cover"
-                      className="transition-transform duration-300 hover:scale-105"
+                      className="transition-transform duration-300 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                       <div className="absolute bottom-2 left-2 right-2">
                         <p className="text-white text-xs">
                           {new Date(photo.uploadDate).toLocaleDateString()}
@@ -1357,6 +1509,10 @@ export default function PlantDetailPage() {
                           <p className="text-white text-xs truncate">{photo.description}</p>
                         )}
                       </div>
+                    </div>
+                    {/* Indicador de que es clickeable */}
+                    <div className="absolute top-2 right-2 bg-black/60 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <FiImage className="w-4 h-4 text-white" />
                     </div>
                   </div>
                 ))}
@@ -1385,6 +1541,154 @@ export default function PlantDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Photo Viewer Modal estilo galería */}
+      {showPhotoViewer && allPhotos.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col">
+          {/* Header del visor */}
+          <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-white">
+                <h2 className="text-xl font-bold">{plant.personalName}</h2>
+                <p className="text-sm text-gray-300">
+                  {currentPhotoIndex + 1} de {allPhotos.length} fotos
+                </p>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-2">
+                {/* Botón de editar fotos */}
+                <button
+                  onClick={() => {
+                    closePhotoViewer();
+                    router.push('/galeria');
+                  }}
+                  className="text-blue-400 hover:text-blue-300 active:text-blue-500 p-2 rounded-lg bg-black/20 hover:bg-black/40 active:bg-black/60 transition-all touch-manipulation"
+                  title="Editar fotos en galería"
+                  aria-label="Editar fotos en galería"
+                >
+                  <FiEdit3 className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+                
+                {/* Botón de descarga */}
+                <button
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    const currentPhoto = allPhotos[currentPhotoIndex];
+                    try {
+                      const response = await fetch(currentPhoto.photoURL);
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = `${plant.personalName}-${currentPhotoIndex + 1}.jpg`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      window.URL.revokeObjectURL(url);
+                    } catch (error) {
+                      console.error('Error downloading photo:', error);
+                      if (typeof toast !== 'undefined') toast.error('Error al descargar la foto');
+                    }
+                  }}
+                  className="text-white hover:text-gray-300 active:text-gray-400 p-2 rounded-lg bg-black/20 hover:bg-black/40 active:bg-black/60 transition-all touch-manipulation"
+                  title="Descargar foto"
+                  aria-label="Descargar foto"
+                >
+                  <FiDownload className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+                {/* Botón cerrar */}
+                <button
+                  onClick={closePhotoViewer}
+                  className="text-white hover:text-gray-300 active:text-gray-400 p-2 rounded-lg bg-black/20 hover:bg-black/40 active:bg-black/60 transition-all touch-manipulation"
+                  title="Cerrar"
+                  aria-label="Cerrar visor"
+                >
+                  <FiX className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Contenido principal - Imagen */}
+          <div className="flex-1 flex items-center justify-center relative min-h-0 pt-16 pb-20">
+            {/* Imagen principal */}
+            <div className="relative w-full h-full flex items-center justify-center px-16">
+              <div className="relative max-w-full max-h-full flex items-center justify-center">
+                <img
+                  src={allPhotos[currentPhotoIndex].photoURL}
+                  alt={allPhotos[currentPhotoIndex].description || `Foto ${currentPhotoIndex + 1}`}
+                  className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-2xl photo-viewer"
+                  style={{ 
+                    maxWidth: '90vw', 
+                    maxHeight: '70vh',
+                    objectFit: 'contain'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Controles de navegación */}
+            {allPhotos.length > 1 && (
+              <>
+                <button
+                  onClick={() => navigatePhoto('prev')}
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white bg-black/70 hover:bg-black/90 active:bg-black p-2 sm:p-3 rounded-full transition-all z-10 touch-manipulation"
+                  title="Foto anterior"
+                  aria-label="Foto anterior"
+                >
+                  <FiChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+                <button
+                  onClick={() => navigatePhoto('next')}
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white bg-black/70 hover:bg-black/90 active:bg-black p-2 sm:p-3 rounded-full transition-all z-10 touch-manipulation"
+                  title="Foto siguiente"
+                  aria-label="Foto siguiente"
+                >
+                  <FiChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Miniaturas en la parte inferior */}
+          {allPhotos.length > 1 && (
+            <div className="absolute bottom-0 left-0 right-0 h-20 sm:h-24 bg-gradient-to-t from-black/95 via-black/80 to-transparent">
+              <div className="flex items-end justify-center h-full px-2 sm:px-4 pb-2 sm:pb-4">
+                <div className="flex gap-2 sm:gap-3 overflow-x-auto max-w-full thumbnail-container py-2 px-2" style={{ scrollbarWidth: 'none' }}>
+                  {allPhotos.map((photo, index) => (
+                    <button
+                      key={photo.id}
+                      onClick={() => setCurrentPhotoIndex(index)}
+                      className={`relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation ${
+                        index === currentPhotoIndex 
+                          ? 'border-white shadow-xl scale-110 z-10' 
+                          : 'border-gray-500 hover:border-gray-300 opacity-70 hover:opacity-100'
+                      }`}
+                      title={`Foto ${index + 1}${photo.isMain ? ' (Principal)' : ''}`}
+                      aria-label={`Ver foto ${index + 1}${photo.isMain ? ' (Principal)' : ''}`}
+                    >
+                      <img
+                        src={photo.photoURL}
+                        alt={`Miniatura ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Indicador de foto actual */}
+                      {index === currentPhotoIndex && (
+                        <div className="absolute inset-0 bg-white/10 border-2 border-white rounded-lg"></div>
+                      )}
+                      {/* Indicador de foto principal */}
+                      {photo.isMain && (
+                        <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 text-yellow-400">
+                          <FiStar className="w-2.5 h-2.5 sm:w-3 sm:h-3" fill="currentColor" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </Layout>
   );
 }

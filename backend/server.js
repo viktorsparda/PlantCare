@@ -359,8 +359,10 @@ app.post("/upload-profile-photo", authenticateToken, upload.single("profilePhoto
   }
 
   // Construir la URL completa de la foto
-  const protocol = req.protocol;
+  // En producción (Railway o cuando host contiene railway.app), siempre usar HTTPS
   const host = req.get('host');
+  const isProduction = process.env.NODE_ENV === 'production' || host.includes('railway.app');
+  const protocol = isProduction ? 'https' : req.protocol;
   const photoURL = `${protocol}://${host}/uploads/${req.file.filename}`;
 
   res.json({ 

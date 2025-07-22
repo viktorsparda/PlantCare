@@ -2,9 +2,17 @@
 
 **PlantCare** es una aplicación web moderna que utiliza inteligencia artificial para identificar plantas y ayudar en su cuidado diario.
 
-## ✨ Características
+## ✨ Caracterís## 📞 Soporte
 
-### 🔍 **Identificación de Plantas**
+- 🐛 Issues: [GitHub Issues](https://github.com/viktorsparda/PlantCare/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/viktorsparda/PlantCare/discussions)
+- 📧 Email: Contacta a través de GitHub
+
+## 🔗 Links Útiles
+
+- 🚀 **Demo Live**: [https://plant-care-blond.vercel.app](https://plant-care-blond.vercel.app)
+- 🔧 **API Backend**: [https://plantcare-production-52be.up.railway.app](https://plantcare-production-52be.up.railway.app)
+- 📂 **Repositorio**: [https://github.com/viktorsparda/PlantCare](https://github.com/viktorsparda/PlantCare)🔍 **Identificación de Plantas**
 - Identificación automática usando Google Gemini AI
 - Análisis de imágenes con alta precisión
 - Información detallada sobre especies
@@ -117,7 +125,7 @@ PlantCare/
 ### Variables de Entorno
 ```env
 # Frontend (.env.local)
-NEXT_PUBLIC_API_URL=https://plantcare-production-52be.up.railway.app
+NEXT_PUBLIC_API_URL=http://localhost:4000
 NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
@@ -221,6 +229,7 @@ Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para detalles.
 ### Frontend (Vercel)
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fviktorsparda%2FPlantCare)
 
+### Backend (Railway)
 ### Backend (Railway)
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/viktorsparda/PlantCare)
 

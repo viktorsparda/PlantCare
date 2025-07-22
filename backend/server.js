@@ -802,7 +802,7 @@ app.post("/plants/:id/photos", authenticateToken, upload.single("photo"), (req, 
             id: this.lastID,
             plantId,
             photoPath,
-            photoURL: `${process.env.API_URL || 'http://localhost:4000'}/uploads/${photoPath}`,
+            photoURL: photoPath,  // Solo devolver el path, el frontend construye la URL
             description: description || "Foto adicional",
             uploadDate,
             message: "Foto adicional subida exitosamente"
@@ -842,10 +842,10 @@ app.get("/plants/:id/photos", authenticateToken, (req, res) => {
           }
           
           // Agregar URLs completas a las fotos
-          const apiUrl = process.env.API_URL || 'http://localhost:4000';
+          // Devolver solo el photoPath y que el frontend construya la URL completa
           const photosWithUrls = photos.map(photo => ({
             ...photo,
-            photoURL: `${apiUrl}/uploads/${photo.photoPath}`
+            photoURL: photo.photoPath  // Solo devolver el path, el frontend construye la URL
           }));
           
           res.json(photosWithUrls);

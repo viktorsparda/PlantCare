@@ -192,7 +192,6 @@ export default function GaleriaPage() {
       }
 
       // Verificar que sea una foto adicional real (no una foto principal convertida)
-      // Convertir el ID a string para poder usar startsWith
       const photoId = String(photoToSetAsMain.id || '');
       if (photoId.startsWith('main-') || photoId.startsWith('additional-')) {
         toast.error('No se puede cambiar esta foto como principal');
@@ -204,7 +203,15 @@ export default function GaleriaPage() {
       const token = await user.getIdToken();
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       
-      // Usar el nuevo endpoint que intercambia las fotos sin borrar nada
+      // Función helper para construir URLs correctamente
+      const buildPhotoURL = (photoPath) => {
+        if (!photoPath) return '/default-plant.jpg';
+        if (photoPath.startsWith('http')) return photoPath;
+        const cleanPath = photoPath.replace(/^(uploads[\\/]?|\/)/, '');
+        return `${apiUrl}/uploads/${cleanPath}`;
+      };
+      
+      // Usar el endpoint que intercambia las fotos
       const response = await fetch(`${apiUrl}/plants/${viewerPlant.id}/set-main-photo`, {
         method: 'PUT',
         headers: { 
@@ -220,58 +227,57 @@ export default function GaleriaPage() {
         const result = await response.json();
         toast.success('Foto principal actualizada exitosamente', { id: loadingToast });
         
-        // Recargar completamente las fotos desde el servidor para evitar problemas de estado
-        
-        // Actualizar el estado de plantas local para reflejar el cambio en la galería (sin cambiar fecha)
-        setPlants(prevPlants => 
-          prevPlants.map(plant => 
-            plant.id === viewerPlant.id 
-              ? { 
-                  ...plant, 
-                  photoPath: result.newMainPhoto
-                }
-              : plant
-          )
-        );
-        
-        // Actualizar viewerPlant para mantener consistencia (sin cambiar fecha)
-        setViewerPlant(prev => ({ 
-          ...prev, 
-          photoPath: result.newMainPhoto
-        }));
-
-        // Recargar las fotos desde el servidor para tener datos consistentes
+        // Recargar todas las fotos desde el servidor para asegurar consistencia
         try {
-          const updatedPlant = { 
-            ...viewerPlant, 
-            photoPath: result.newMainPhoto
-          };
-          
+          // Cargar fotos adicionales actualizadas
           const photosResponse = await fetch(`${apiUrl}/plants/${viewerPlant.id}/photos`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
 
-          const additionalPhotos = photosResponse.ok ? await photosResponse.json() : [];
+          const additionalPhotosData = photosResponse.ok ? await photosResponse.json() : [];
           
-          // Crear nueva foto principal con datos actualizados (conservando fecha original)
+          const additionalPhotos = additionalPhotosData.map(photo => ({
+            ...photo,
+            photoURL: buildPhotoURL(photo.photoPath)
+          }));
+          
+          // Crear nueva foto principal con los datos actualizados
           const mainPhoto = {
-            id: `main-${updatedPlant.id}`,
-            photoURL: updatedPlant.photoPath 
-              ? `${apiUrl}/uploads/${updatedPlant.photoPath.replace(/^uploads[\\/]/, '')}` 
-              : '/default-plant.jpg',
-            description: updatedPlant.personalName,
-            uploadDate: updatedPlant.date || new Date().toISOString(), // Mantener fecha original
+            id: `main-${viewerPlant.id}`,
+            photoURL: buildPhotoURL(result.newMainPhoto),
+            description: viewerPlant.personalName,
+            uploadDate: viewerPlant.date || new Date().toISOString(),
             isMain: true
           };
 
-          const refreshedPhotos = [mainPhoto, ...additionalPhotos];
-          setAllPhotos(refreshedPhotos);
+          // Combinar todas las fotos actualizadas
+          const allPhotosUpdated = [mainPhoto, ...additionalPhotos];
+          
+          // Actualizar estados
+          setAllPhotos(allPhotosUpdated);
           setCurrentPhotoIndex(0); // Ir a la nueva foto principal
           
-        } catch (refreshError) {
-          console.error('Error refreshing photos:', refreshError);
-          // Si falla la recarga, cerrar el visor
+          // Actualizar el estado de plantas para la galería
+          setPlants(prevPlants => 
+            prevPlants.map(plant => 
+              plant.id === viewerPlant.id 
+                ? { ...plant, photoPath: result.newMainPhoto }
+                : plant
+            )
+          );
+          
+          // Actualizar viewerPlant
+          setViewerPlant(prev => ({ 
+            ...prev, 
+            photoPath: result.newMainPhoto
+          }));
+          
+        } catch (reloadError) {
+          console.error('Error reloading photos after main photo change:', reloadError);
+          // Si falla la recarga, cerrar el visor y recargar plantas
+          toast.info('Foto principal cambiada. Recargando galería...');
           closePhotoViewer();
+          await loadPlants();
         }
         
       } else {
@@ -528,11 +534,10 @@ export default function GaleriaPage() {
             {filteredPlants.map((plant) => (
               <div
                 key={plant.id}
-                onClick={() => handlePlantClick(plant.id)}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden cursor-pointer transform hover:scale-105 transition-all duration-200 hover:shadow-xl border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-all duration-200 hover:shadow-xl border border-gray-200 dark:border-gray-700"
               >
                 {/* Imagen */}
-                <div className="relative aspect-square group">
+                <div className="relative aspect-square">
                   <Image
                     src={plant.photoPath 
                       ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/uploads/${plant.photoPath.replace(/^uploads[\\/]/, '')}` 
@@ -541,56 +546,57 @@ export default function GaleriaPage() {
                     alt={plant.personalName}
                     layout="fill"
                     objectFit="cover"
-                    className="transition-transform duration-300 group-hover:scale-110"
+                    className="transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-200"></div>
                   
-                  {/* Overlay con botones de acción */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
-                    <div className="flex gap-2">
+                  {/* Indicador de múltiples fotos en la esquina superior derecha */}
+                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                    <FiImage className="w-3 h-3" />
+                    <span>1+</span>
+                  </div>
+                  
+                  {/* Overlay con botones de acción en la parte inferior */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2">
+                    <div className="flex gap-1.5 justify-center">
+                      {/* Botón Ver Detalles - Estilo primario */}
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePlantClick(plant.id);
-                        }}
-                        className="bg-white/90 hover:bg-white text-gray-800 px-2 py-2 rounded-lg text-xs font-medium transition-all transform hover:scale-105 flex items-center gap-1"
+                        onClick={() => handlePlantClick(plant.id)}
+                        className="flex-1 bg-white/95 hover:bg-white text-gray-900 px-2 py-1.5 rounded-md text-xs font-medium transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg"
+                        aria-label="Ver detalles completos de la planta"
                       >
-                        <FiEye className="w-3 h-3" />
-                        Ver
+                        <FiEye className="w-3.5 h-3.5" />
+                        <span>Info</span>
                       </button>
+                      
+                      {/* Botón Ver Galería - Estilo secundario */}
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openPhotoViewer(plant, 0);
-                        }}
-                        className="bg-blue-500/90 hover:bg-blue-500 text-white px-2 py-2 rounded-lg text-xs font-medium transition-all transform hover:scale-105 flex items-center gap-1"
+                        onClick={() => openPhotoViewer(plant, 0)}
+                        className="flex-1 bg-blue-600/90 hover:bg-blue-600 text-white px-2 py-1.5 rounded-md text-xs font-medium transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg"
+                        aria-label="Ver galería de fotos"
                       >
-                        <FiMaximize2 className="w-3 h-3" />
-                        Fotos
+                        <FiMaximize2 className="w-3.5 h-3.5" />
+                        <span>Fotos</span>
                       </button>
+                      
+                      {/* Botón agregar fotos - Mismo tamaño que los otros */}
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddPhotos(plant);
-                        }}
-                        className="bg-green-500/90 hover:bg-green-500 text-white px-2 py-2 rounded-lg text-xs font-medium transition-all transform hover:scale-105 flex items-center gap-1"
+                        onClick={() => handleAddPhotos(plant)}
+                        className="flex-1 bg-green-600/90 hover:bg-green-600 text-white px-2 py-1.5 rounded-md text-xs font-medium transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg"
+                        aria-label="Agregar más fotos a esta planta"
                       >
-                        <FiPlus className="w-3 h-3" />
-                        +
+                        <FiPlus className="w-3.5 h-3.5" />
+                        <span>+</span>
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Info */}
-                <div className="p-4">
+                {/* Info - Simplificada */}
+                <div className="p-3">
                   <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate mb-1">
                     {plant.personalName}
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 truncate italic">
-                    {plant.commonName || plant.sciName}
-                  </p>
-                  <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {new Date(plant.date).toLocaleDateString('es-ES', {
                         day: '2-digit',
@@ -722,19 +728,20 @@ export default function GaleriaPage() {
                     {currentPhotoIndex + 1} de {allPhotos.length} fotos
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   {/* Botón para cambiar foto principal */}
                   <button
                     onClick={() => setAsMainPhoto(currentPhotoIndex)}
-                    className={`p-2 rounded-full transition-all hover:scale-110 ${
+                    className={`p-2 sm:p-2 rounded-full transition-all hover:scale-110 active:scale-95 touch-manipulation ${
                       allPhotos[currentPhotoIndex].isMain
                         ? 'text-yellow-400 hover:text-yellow-300'
                         : 'text-gray-400 hover:text-yellow-400'
                     }`}
                     title={allPhotos[currentPhotoIndex].isMain ? 'Esta es la foto principal' : 'Hacer foto principal'}
+                    aria-label={allPhotos[currentPhotoIndex].isMain ? 'Esta es la foto principal' : 'Hacer foto principal'}
                   >
                     <FiStar 
-                      className="w-5 h-5" 
+                      className="w-4 h-4 sm:w-5 sm:h-5" 
                       fill={allPhotos[currentPhotoIndex].isMain ? 'currentColor' : 'none'} 
                     />
                   </button>
@@ -763,18 +770,20 @@ export default function GaleriaPage() {
                           toast.error('Error al descargar la foto');
                         });
                     }}
-                    className="text-white hover:text-gray-300 p-2 rounded-lg bg-black/20 hover:bg-black/40 transition-colors"
+                    className="text-white hover:text-gray-300 active:text-gray-400 p-2 rounded-lg bg-black/20 hover:bg-black/40 active:bg-black/60 transition-all touch-manipulation"
                     title="Descargar foto"
+                    aria-label="Descargar foto"
                   >
-                    <FiDownload className="w-5 h-5" />
+                    <FiDownload className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                   
                   <button
                     onClick={closePhotoViewer}
-                    className="text-white hover:text-gray-300 p-2 rounded-lg bg-black/20 hover:bg-black/40 transition-colors"
+                    className="text-white hover:text-gray-300 active:text-gray-400 p-2 rounded-lg bg-black/20 hover:bg-black/40 active:bg-black/60 transition-all touch-manipulation"
                     title="Cerrar"
+                    aria-label="Cerrar visor"
                   >
-                    <FiX className="w-5 h-5" />
+                    <FiX className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 </div>
               </div>
@@ -805,22 +814,24 @@ export default function GaleriaPage() {
                     </div>
                   </div>
 
-                  {/* Controles de navegación */}
+                  {/* Controles de navegación - Mejorados para móviles */}
                   {allPhotos.length > 1 && (
                     <>
                       <button
                         onClick={() => navigatePhoto('prev')}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black/50 hover:bg-black/70 p-3 rounded-full transition-colors z-10"
+                        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white bg-black/70 hover:bg-black/90 active:bg-black p-2 sm:p-3 rounded-full transition-all z-10 touch-manipulation"
                         title="Foto anterior"
+                        aria-label="Foto anterior"
                       >
-                        <FiChevronLeft className="w-6 h-6" />
+                        <FiChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                       </button>
                       <button
                         onClick={() => navigatePhoto('next')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/50 hover:bg-black/70 p-3 rounded-full transition-colors z-10"
+                        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white bg-black/70 hover:bg-black/90 active:bg-black p-2 sm:p-3 rounded-full transition-all z-10 touch-manipulation"
                         title="Foto siguiente"
+                        aria-label="Foto siguiente"
                       >
-                        <FiChevronRight className="w-6 h-6" />
+                        <FiChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
                       </button>
                     </>
                   )}
@@ -828,21 +839,22 @@ export default function GaleriaPage() {
               )}
             </div>
 
-            {/* Miniaturas en la parte inferior */}
+            {/* Miniaturas en la parte inferior - Mejoradas para móviles */}
             {allPhotos.length > 1 && (
-              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/95 via-black/80 to-transparent">
-                <div className="flex items-end justify-center h-full px-4 pb-4">
-                  <div className="flex gap-3 overflow-x-auto max-w-full thumbnail-container py-2 px-2" style={{ scrollbarWidth: 'none' }}>
+              <div className="absolute bottom-0 left-0 right-0 h-20 sm:h-24 bg-gradient-to-t from-black/95 via-black/80 to-transparent">
+                <div className="flex items-end justify-center h-full px-2 sm:px-4 pb-2 sm:pb-4">
+                  <div className="flex gap-2 sm:gap-3 overflow-x-auto max-w-full thumbnail-container py-2 px-2" style={{ scrollbarWidth: 'none' }}>
                     {allPhotos.map((photo, index) => (
                       <button
                         key={photo.id}
                         onClick={() => setCurrentPhotoIndex(index)}
-                        className={`relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:scale-105 ${
+                        className={`relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation ${
                           index === currentPhotoIndex 
                             ? 'border-white shadow-xl scale-110 z-10' 
                             : 'border-gray-500 hover:border-gray-300 opacity-70 hover:opacity-100'
                         }`}
                         title={`Foto ${index + 1}${photo.isMain ? ' (Principal)' : ''}`}
+                        aria-label={`Ver foto ${index + 1}${photo.isMain ? ' (Principal)' : ''}`}
                       >
                         <img
                           src={photo.photoURL}
@@ -855,8 +867,8 @@ export default function GaleriaPage() {
                         )}
                         {/* Indicador de foto principal */}
                         {photo.isMain && (
-                          <div className="absolute top-1 right-1 text-yellow-400">
-                            <FiStar className="w-3 h-3" fill="currentColor" />
+                          <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 text-yellow-400">
+                            <FiStar className="w-2.5 h-2.5 sm:w-3 sm:h-3" fill="currentColor" />
                           </div>
                         )}
                       </button>

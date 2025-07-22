@@ -114,7 +114,12 @@ export default function GaleriaPage() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      const additionalPhotos = response.ok ? await response.json() : [];
+      const additionalPhotosData = response.ok ? await response.json() : [];
+      
+      const additionalPhotos = additionalPhotosData.map(photo => ({
+        ...photo,
+        photoURL: photo.photoURL ? `${apiUrl}/uploads/${photo.photoURL.replace(/^uploads[\\/]/, '')}` : '/default-plant.jpg'
+      }));
       
       // Combinar foto principal con fotos adicionales
       const mainPhoto = {

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
 import Layout from '../../components/Layout';
+import ConfirmModal from '../../components/ConfirmModal';
 import { 
   FiTag, 
   FiCalendar, 
@@ -18,7 +19,8 @@ import {
   FiShield,
   FiTarget,
   FiTrash2,
-  FiSearch
+  FiSearch,
+  FiImage
 } from 'react-icons/fi';
 import { 
   BiWater,
@@ -404,6 +406,8 @@ const Reminders = ({ plantId, plantName }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [reminderToDelete, setReminderToDelete] = useState(null);
   const [newReminder, setNewReminder] = useState({
     type: 'watering',
     frequency: 7,
@@ -426,7 +430,7 @@ const Reminders = ({ plantId, plantName }) => {
       try {
         setLoading(true);
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
         const response = await fetch(`${apiUrl}/reminders/${plantId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -452,7 +456,7 @@ const Reminders = ({ plantId, plantName }) => {
       setLoading(true);
       setServerError(false);
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const response = await fetch(`${apiUrl}/reminders/${plantId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -501,7 +505,7 @@ const Reminders = ({ plantId, plantName }) => {
   const saveReminder = async (reminderData) => {
     try {
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       
       // Mapear los datos al formato esperado por el backend
       const backendData = {
@@ -569,7 +573,7 @@ const Reminders = ({ plantId, plantName }) => {
     try {
       setLoading(true);
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const response = await fetch(`${apiUrl}/reminders/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -577,6 +581,8 @@ const Reminders = ({ plantId, plantName }) => {
       
       if (response.ok) {
         setReminders(reminders.filter(r => r.id !== id));
+        setDeleteModalOpen(false);
+        setReminderToDelete(null);
       } else {
         const error = await response.json();
         console.error('Error deleting reminder:', error);
@@ -588,6 +594,22 @@ const Reminders = ({ plantId, plantName }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteClick = (reminder) => {
+    setReminderToDelete(reminder);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (reminderToDelete) {
+      deleteReminder(reminderToDelete.id);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setReminderToDelete(null);
   };
 
   const getColorClasses = (color) => {
@@ -990,9 +1012,10 @@ const Reminders = ({ plantId, plantName }) => {
                     </div>
                   </div>
                   <button
-                    onClick={() => deleteReminder(reminder.id)}
+                    onClick={() => handleDeleteClick(reminder)}
                     disabled={loading}
                     className={`text-red-500 hover:text-red-700 p-1 transition-colors flex-shrink-0 ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
+                    title="Eliminar recordatorio"
                   >
                     <FiTrash2 className="w-4 h-4" />
                   </button>
@@ -1010,6 +1033,17 @@ const Reminders = ({ plantId, plantName }) => {
           </p>
         </div>
       )}
+
+      {/* Modal de confirmación para eliminar recordatorio */}
+      <ConfirmModal
+        open={deleteModalOpen}
+        title="¿Eliminar recordatorio?"
+        description={`¿Estás seguro de que deseas eliminar el recordatorio de ${reminderToDelete?.typeName} para ${plantName}?`}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+      />
     </div>
   );
 };
@@ -1026,6 +1060,8 @@ export default function PlantDetailPage() {
   const [error, setError] = useState(null);
   const [dataSource, setDataSource] = useState(null);
   const [apiMessage, setApiMessage] = useState(null);
+  const [additionalPhotos, setAdditionalPhotos] = useState([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(true);
 
   // Función para capitalizar texto
   const capitalizeText = (text) => {
@@ -1040,7 +1076,7 @@ export default function PlantDetailPage() {
       try {
         setLoadingPlant(true);
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
         const response = await fetch(`${apiUrl}/plants/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -1070,7 +1106,7 @@ export default function PlantDetailPage() {
       setLoadingSpecies(true);
       try {
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
         const response = await fetch(`${apiUrl}/api/species-info/${plant.sciName}/${plant.commonName}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -1094,6 +1130,35 @@ export default function PlantDetailPage() {
 
     fetchSpeciesAndCareInfo();
   }, [plant, user]);
+
+  // Cargar fotos adicionales
+  useEffect(() => {
+    if (!id || !user) return;
+
+    const fetchAdditionalPhotos = async () => {
+      try {
+        setLoadingPhotos(true);
+        const token = await user.getIdToken();
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const response = await fetch(`${apiUrl}/plants/${id}/photos`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const photos = await response.json();
+          setAdditionalPhotos(photos);
+        }
+      } catch (err) {
+        console.error('Error loading additional photos:', err);
+      } finally {
+        setLoadingPhotos(false);
+      }
+    };
+
+    fetchAdditionalPhotos();
+  }, [id, user]);
 
 
   if (loadingPlant) {
@@ -1134,7 +1199,7 @@ export default function PlantDetailPage() {
             <div className="md:w-80 flex-shrink-0">
               <div className="relative aspect-square rounded-xl shadow-lg overflow-hidden">
                 <Image
-                  src={plant.photoPath ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads/${plant.photoPath.replace(/^uploads[\\/]/, '')}` : '/default-plant.jpg'}
+                  src={plant.photoPath ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/uploads/${plant.photoPath.replace(/^uploads[\\/]/, '')}` : '/default-plant.jpg'}
                   alt={plant.personalName}
                   layout="fill"
                   objectFit="cover"
@@ -1254,6 +1319,57 @@ export default function PlantDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Sección de Fotos Adicionales */}
+        {(additionalPhotos.length > 0 || !loadingPhotos) && (
+          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-2xl shadow-lg p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center">
+                <FiImage className="w-6 h-6 mr-2 text-green-500" />
+                Galería de Fotos
+              </h2>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {additionalPhotos.length} foto{additionalPhotos.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+            
+            {loadingPhotos ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+              </div>
+            ) : additionalPhotos.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {additionalPhotos.map((photo) => (
+                  <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                    <Image
+                      src={photo.photoURL}
+                      alt={`Foto adicional de ${plant.personalName}`}
+                      layout="fill"
+                      objectFit="cover"
+                      className="transition-transform duration-300 hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-2 left-2 right-2">
+                        <p className="text-white text-xs">
+                          {new Date(photo.uploadDate).toLocaleDateString()}
+                        </p>
+                        {photo.description && (
+                          <p className="text-white text-xs truncate">{photo.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <FiImage className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No hay fotos adicionales disponibles</p>
+                <p className="text-sm">Las nuevas fotos aparecerán aquí cuando se agreguen desde la galería</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Content Grid - Layout en 2 columnas para desktop */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

@@ -159,6 +159,20 @@ railway up
 - 📊 **Precisión de AI**: 85%+
 - ⏰ **Recordatorios activos**: 1000+
 - 👥 **Usuarios activos**: 50+
+- 🔧 **Mejoras recientes**: Flujo de guardado mejorado, confirmaciones de eliminación, galería funcional
+
+## 📝 Última Actualización (Julio 2025)
+
+### ✨ Nuevas Funcionalidades
+- **Galería Completa**: Nueva página de galería totalmente funcional con estadísticas
+- **Confirmaciones de Eliminación**: Modales de confirmación para eliminar recordatorios
+- **Exportación de Datos**: Descarga completa de todos tus datos en formato JSON
+- **Flujo de Guardado Mejorado**: Se limpia la interfaz después de guardar plantas
+
+### 🐛 Correcciones
+- Solucionado: Confusión en el flujo de guardado de plantas
+- Solucionado: Error 404 en página de galería
+- Mejorado: Experiencia de usuario más fluida y consistente
 
 ## 🤝 Contribuir
 

@@ -32,7 +32,7 @@ export default function ProfilePhotoUpdater({ user, onUpdate, className = "" }) 
 
       // Obtener token de autenticación
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
       // Subir imagen al backend
       const response = await fetch(`${apiUrl}/upload-profile-photo`, {

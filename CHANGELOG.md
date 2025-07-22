@@ -1,5 +1,62 @@
 # 📋 CHANGELOG - PlantCare
 
+## 🚀 **Versión 1.3.0** - Julio 21, 2025
+
+### ✨ **Nuevas Características**
+
+#### 🖼️ **Galería Funcional**
+- **Agregado**: Nueva página de galería completamente funcional (`/galeria`)
+- **Agregado**: Visualización en grid responsive de todas las plantas
+- **Agregado**: Sistema de búsqueda por nombre (personal, común, científico)
+- **Agregado**: Filtros por fecha (todas, recientes de 7 días)
+- **Agregado**: Estadísticas de colección (total, mostrando, esta semana, especies únicas)
+- **Agregado**: Vista previa de imágenes con hover efectos
+- **Agregado**: Navegación directa a detalles de planta desde galería
+
+#### ⚠️ **Confirmaciones de Eliminación**
+- **Agregado**: Modal de confirmación para eliminar recordatorios
+- **Agregado**: Prevención de eliminación accidental
+- **Agregado**: Información descriptiva en modales de confirmación
+- **Agregado**: Consistencia en experiencia de eliminación
+
+#### 📤 **Sistema de Exportación de Datos**
+- **Agregado**: Endpoint `/export/data` en backend
+- **Agregado**: Exportación completa de datos en formato JSON
+- **Agregado**: Descarga automática de archivo de exportación
+- **Agregado**: Datos incluyen: plantas, recordatorios, estadísticas
+- **Agregado**: Metadata de exportación (timestamp, versión, totales)
+- **Agregado**: Estadísticas agregadas por categorías
+
+### 🔄 **Mejoras de UX**
+
+#### 🌱 **Flujo de Guardado Mejorado**
+- **Corregido**: Confusión después de guardar plantas
+- **Mejorado**: Se resetea el identificador después de guardar
+- **Mejorado**: Interfaz más limpia sin opciones duplicadas
+- **Mejorado**: Feedback visual claro en operaciones de guardado
+
+#### 🎯 **Experiencia de Usuario**
+- **Mejorado**: Mensajes de confirmación más descriptivos
+- **Mejorado**: Estados de carga con feedback visual
+- **Mejorado**: Navegación más intuitiva entre secciones
+- **Mejorado**: Consistencia en iconografía y colores
+
+### 🐛 **Correcciones**
+
+#### 🔧 **Bugs Solucionados**
+- **Corregido**: Error 404 en página de galería (ahora totalmente funcional)
+- **Corregido**: Flujo de guardado confuso que mostraba opciones duplicadas
+- **Corregido**: Eliminación accidental de recordatorios sin confirmación
+- **Corregido**: Estados inconsistentes en componente PlantIdentifier
+
+### 📱 **Feedback de Usuario Implementado**
+- ✅ **Solucionado**: Confusión en flujo de guardado de plantas
+- ✅ **Solucionado**: Falta de confirmación para eliminar recordatorios  
+- ✅ **Solucionado**: Error 404 en galería
+- ✅ **Implementado**: Sistema de exportación de datos funcional
+
+---
+
 ## 🚀 **Versión 1.2.0** - Julio 12, 2025
 
 ### ✨ **Nuevas Características**

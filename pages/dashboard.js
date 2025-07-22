@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [refreshPlants, setRefreshPlants] = useState(0);
   const [saveFormOpen, setSaveFormOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [resetIdentifier, setResetIdentifier] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -96,6 +97,7 @@ export default function Dashboard() {
   }
   function handlePlantSaved() {
     setRefreshPlants((r) => r + 1);
+    setResetIdentifier(prev => prev + 1); // Trigger reset del identificador
     closeSaveForm();
   }
   return (
@@ -195,7 +197,7 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Sube una foto para identificar cualquier planta y agregarla a tu colección
                 </p>
-                <PlantIdentifier onOpenSaveForm={openSaveForm} />
+                <PlantIdentifier onOpenSaveForm={openSaveForm} resetTrigger={resetIdentifier} />
               </div>
             </div>
 

@@ -32,7 +32,7 @@ export default function RemindersPage() {
         setLoading(true);
         setServerError(false);
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
         // Cargar plantas
         const plantsResponse = await fetch(`${apiUrl}/plants`, {

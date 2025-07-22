@@ -13,8 +13,50 @@ export default function Configuracion() {
   const [showFinalConfirmModal, setShowFinalConfirmModal] = useState(false);
   const [confirmationText, setConfirmationText] = useState('');
 
-  const handleExportData = () => {
-    toast.success('Exportación de datos iniciada. Recibirás un email con el archivo cuando esté listo.');
+  const handleExportData = async () => {
+    try {
+      const loadingToast = toast.loading('Preparando exportación de datos...');
+      
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const idToken = await user.getIdToken();
+      const response = await fetch(`${apiUrl}/export/data`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
+      });
+
+      if (response.ok) {
+        // Crear y descargar el archivo
+        const data = await response.json();
+        const dataStr = JSON.stringify(data, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `plantcare_export_${new Date().toISOString().split('T')[0]}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+        
+        toast.success(
+          `✅ Datos exportados exitosamente. Se han descargado ${data.user_data.plants.length} plantas y ${data.user_data.reminders.length} recordatorios.`,
+          { 
+            duration: 5000,
+            id: loadingToast 
+          }
+        );
+      } else {
+        const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
+        throw new Error(errorData.error || 'Error en el servidor');
+      }
+    } catch (error) {
+      console.error('Error al exportar datos:', error);
+      toast.error(
+        `Error al exportar los datos: ${error.message}. Verifica que el servidor esté funcionando.`,
+        { duration: 6000 }
+      );
+    }
   };
 
   const handleDeleteAllData = () => {

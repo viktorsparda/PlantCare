@@ -1,9 +1,9 @@
 // components/PlantIdentifier.js
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { FaUpload, FaCheckCircle, FaTimesCircle, FaLeaf, FaSave } from 'react-icons/fa';
 
-export default function PlantIdentifier({ onOpenSaveForm }) {
+export default function PlantIdentifier({ onOpenSaveForm, resetTrigger }) {
   const [image, setImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [result, setResult] = useState(null);
@@ -11,6 +11,22 @@ export default function PlantIdentifier({ onOpenSaveForm }) {
   const [error, setError] = useState(null);
   // Tooltip state
   const [showTooltip, setShowTooltip] = useState(false);
+
+  // Función para resetear el componente
+  const resetComponent = () => {
+    setImage(null);
+    setPreviewUrl(null);
+    setResult(null);
+    setError(null);
+    setLoading(false);
+  };
+
+  // Resetear cuando se reciba el trigger
+  useEffect(() => {
+    if (resetTrigger) {
+      resetComponent();
+    }
+  }, [resetTrigger]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];

@@ -228,6 +228,18 @@ db.serialize(() => {
     )
   `);
   
+  // Crear tabla para fotos adicionales de plantas
+  db.run(`
+    CREATE TABLE IF NOT EXISTS plant_photos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plantId INTEGER NOT NULL,
+      photoPath TEXT NOT NULL,
+      description TEXT,
+      uploadDate TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (plantId) REFERENCES plants(id) ON DELETE CASCADE
+    )
+  `);
+  
   // Agregar columna frequency si no existe (para bases de datos existentes)
   db.run(`
     ALTER TABLE reminders ADD COLUMN frequency INTEGER DEFAULT 7
@@ -746,29 +758,431 @@ app.put("/reminders/:id", authenticateToken, (req, res) => {
   );
 });
 
+// ENDPOINTS DE FOTOS ADICIONALES
+
+// POST /plants/:id/photos - Subir fotos adicionales para una planta
+app.post("/plants/:id/photos", authenticateToken, upload.single("photo"), (req, res) => {
+  const plantId = req.params.id;
+  const userId = req.user.uid;
+  const { description } = req.body;
+  
+  if (!req.file) {
+    return res.status(400).json({ error: "No se subió ningún archivo" });
+  }
+
+  // Verificar que la planta pertenece al usuario
+  db.get(
+    "SELECT id FROM plants WHERE id = ? AND userId = ?",
+    [plantId, userId],
+    (err, row) => {
+      if (err) {
+        console.error("Error verifying plant ownership:", err);
+        return res.status(500).json({ error: "Error de base de datos" });
+      }
+      if (!row) {
+        return res.status(404).json({ error: "Planta no encontrada" });
+      }
+
+      // Guardar la foto adicional en la base de datos
+      const photoPath = req.file.filename;
+      const uploadDate = new Date().toISOString();
+      
+      db.run(
+        "INSERT INTO plant_photos (plantId, photoPath, description, uploadDate) VALUES (?, ?, ?, ?)",
+        [plantId, photoPath, description || "Foto adicional", uploadDate],
+        function (err) {
+          if (err) {
+            console.error("Error saving additional photo:", err);
+            // Eliminar archivo si no se pudo guardar en BD
+            fs.unlink(req.file.path, () => {});
+            return res.status(500).json({ error: "Error guardando la foto" });
+          }
+          
+          res.json({
+            id: this.lastID,
+            plantId,
+            photoPath,
+            photoURL: `${process.env.API_URL || 'http://localhost:4000'}/uploads/${photoPath}`,
+            description: description || "Foto adicional",
+            uploadDate,
+            message: "Foto adicional subida exitosamente"
+          });
+        }
+      );
+    }
+  );
+});
+
+// GET /plants/:id/photos - Obtener todas las fotos adicionales de una planta
+app.get("/plants/:id/photos", authenticateToken, (req, res) => {
+  const plantId = req.params.id;
+  const userId = req.user.uid;
+
+  // Verificar que la planta pertenece al usuario
+  db.get(
+    "SELECT id FROM plants WHERE id = ? AND userId = ?",
+    [plantId, userId],
+    (err, row) => {
+      if (err) {
+        console.error("Error verifying plant ownership:", err);
+        return res.status(500).json({ error: "Error de base de datos" });
+      }
+      if (!row) {
+        return res.status(404).json({ error: "Planta no encontrada" });
+      }
+
+      // Obtener todas las fotos adicionales de la planta
+      db.all(
+        "SELECT * FROM plant_photos WHERE plantId = ? ORDER BY uploadDate DESC",
+        [plantId],
+        (err, photos) => {
+          if (err) {
+            console.error("Error fetching additional photos:", err);
+            return res.status(500).json({ error: "Error obteniendo las fotos" });
+          }
+          
+          // Agregar URLs completas a las fotos
+          const apiUrl = process.env.API_URL || 'http://localhost:4000';
+          const photosWithUrls = photos.map(photo => ({
+            ...photo,
+            photoURL: `${apiUrl}/uploads/${photo.photoPath}`
+          }));
+          
+          res.json(photosWithUrls);
+        }
+      );
+    }
+  );
+});
+
+// DELETE /plants/:plantId/photos/:photoId - Eliminar una foto adicional específica
+app.delete("/plants/:plantId/photos/:photoId", authenticateToken, (req, res) => {
+  const { plantId, photoId } = req.params;
+  const userId = req.user.uid;
+
+  // Verificar que la planta pertenece al usuario
+  db.get(
+    "SELECT id FROM plants WHERE id = ? AND userId = ?",
+    [plantId, userId],
+    (err, row) => {
+      if (err) {
+        console.error("Error verifying plant ownership:", err);
+        return res.status(500).json({ error: "Error de base de datos" });
+      }
+      if (!row) {
+        return res.status(404).json({ error: "Planta no encontrada" });
+      }
+
+      // Obtener la información de la foto para eliminar el archivo
+      db.get(
+        "SELECT * FROM plant_photos WHERE id = ? AND plantId = ?",
+        [photoId, plantId],
+        (err, photo) => {
+          if (err) {
+            console.error("Error fetching photo info:", err);
+            return res.status(500).json({ error: "Error de base de datos" });
+          }
+          if (!photo) {
+            return res.status(404).json({ error: "Foto no encontrada" });
+          }
+
+          // Eliminar archivo físico
+          const photoPath = path.join(__dirname, "uploads", photo.photoPath);
+          if (fs.existsSync(photoPath)) {
+            fs.unlinkSync(photoPath);
+          }
+
+          // Eliminar registro de la base de datos
+          db.run(
+            "DELETE FROM plant_photos WHERE id = ? AND plantId = ?",
+            [photoId, plantId],
+            function (err) {
+              if (err) {
+                console.error("Error deleting photo record:", err);
+                return res.status(500).json({ error: "Error eliminando la foto" });
+              }
+              
+              res.json({ message: "Foto eliminada exitosamente" });
+            }
+          );
+        }
+      );
+    }
+  );
+});
+
+// PUT /plants/:id/set-main-photo - Intercambiar foto principal con una foto adicional
+app.put("/plants/:id/set-main-photo", authenticateToken, (req, res) => {
+  const plantId = req.params.id;
+  const userId = req.user.uid;
+  const { photoId } = req.body; // ID de la foto adicional que se convertirá en principal
+
+  if (!photoId) {
+    return res.status(400).json({ error: "Se requiere el ID de la foto" });
+  }
+
+  // Verificar que la planta pertenece al usuario
+  db.get(
+    "SELECT * FROM plants WHERE id = ? AND userId = ?",
+    [plantId, userId],
+    (err, plant) => {
+      if (err) {
+        console.error("Database error checking plant ownership:", err);
+        return res.status(500).json({ error: "Error de base de datos" });
+      }
+      if (!plant) {
+        return res.status(404).json({ error: "Planta no encontrada" });
+      }
+
+      // Obtener la información de la foto adicional que se convertirá en principal
+      db.get(
+        "SELECT * FROM plant_photos WHERE id = ? AND plantId = ?",
+        [photoId, plantId],
+        (err, photoToPromote) => {
+          if (err) {
+            console.error("Database error fetching photo to promote:", err);
+            return res.status(500).json({ error: "Error de base de datos" });
+          }
+          if (!photoToPromote) {
+            return res.status(404).json({ error: "Foto no encontrada" });
+          }
+
+          // Primero, guardar la foto principal actual como foto adicional (si existe)
+          const saveCurrentMainPhoto = (callback) => {
+            if (plant.photoPath) {
+              // Agregar la foto principal actual a la tabla de fotos adicionales
+              const description = `${plant.personalName}`;
+              const uploadDate = plant.date || new Date().toISOString();
+              
+              db.run(
+                "INSERT INTO plant_photos (plantId, photoPath, description, uploadDate) VALUES (?, ?, ?, ?)",
+                [plantId, plant.photoPath, description, uploadDate],
+                function(err) {
+                  if (err) {
+                    console.error("Error saving current main photo:", err);
+                    return callback(err);
+                  }
+                  callback(null);
+                }
+              );
+            } else {
+              callback(null); // No hay foto principal actual, continuar
+            }
+          };
+
+          // Ejecutar el intercambio
+          saveCurrentMainPhoto((err) => {
+            if (err) {
+              return res.status(500).json({ error: "Error guardando la foto principal actual" });
+            }
+
+            // Actualizar la planta con la nueva foto principal (sin cambiar la fecha)
+            db.run(
+              "UPDATE plants SET photoPath = ? WHERE id = ? AND userId = ?",
+              [photoToPromote.photoPath, plantId, userId],
+              function(err) {
+                if (err) {
+                  console.error("Database error updating plant main photo:", err);
+                  return res.status(500).json({ error: "Error actualizando la foto principal" });
+                }
+
+                // Eliminar la foto de la tabla de fotos adicionales
+                db.run(
+                  "DELETE FROM plant_photos WHERE id = ? AND plantId = ?",
+                  [photoId, plantId],
+                  function(err) {
+                    if (err) {
+                      console.error("Database error removing photo from additional photos:", err);
+                      return res.status(500).json({ error: "Error removiendo la foto de fotos adicionales" });
+                    }
+
+                    res.json({ 
+                      message: "Foto principal intercambiada exitosamente",
+                      newMainPhoto: photoToPromote.photoPath
+                    });
+                  }
+                );
+              }
+            );
+          });
+        }
+      );
+    }
+  );
+});
+
+// GET /export/data - Exportar todos los datos del usuario
+app.get("/export/data", authenticateToken, (req, res) => {
+  const userId = req.user.uid;
+  const timestamp = new Date().toISOString();
+  
+  // Obtener plantas del usuario
+  db.all(
+    "SELECT * FROM plants WHERE userId = ?",
+    [userId],
+    (err, plants) => {
+      if (err) {
+        console.error("Error al obtener plantas para exportación:", err);
+        return res.status(500).json({ error: "Error interno del servidor" });
+      }
+
+      // Obtener recordatorios del usuario
+      db.all(
+        "SELECT * FROM reminders WHERE userId = ?",
+        [userId],
+        (err, reminders) => {
+          if (err) {
+            console.error("Error al obtener recordatorios para exportación:", err);
+            return res.status(500).json({ error: "Error interno del servidor" });
+          }
+
+          // Obtener fotos adicionales del usuario
+          db.all(
+            `SELECT pp.*, p.personalName as plantPersonalName 
+             FROM plant_photos pp 
+             INNER JOIN plants p ON pp.plantId = p.id 
+             WHERE p.userId = ?`,
+            [userId],
+            (err, additionalPhotos) => {
+              if (err) {
+                console.error("Error al obtener fotos adicionales para exportación:", err);
+                return res.status(500).json({ error: "Error interno del servidor" });
+              }
+
+              // Preparar datos para exportación
+              const exportData = {
+                export_info: {
+                  app: "PlantCare",
+                  version: "1.0.0",
+                  exported_at: timestamp,
+                  user_id: userId,
+                  total_plants: plants.length,
+                  total_reminders: reminders.length,
+                  total_additional_photos: additionalPhotos.length
+                },
+                user_data: {
+                  plants: plants.map(plant => ({
+                    id: plant.id,
+                    scientific_name: plant.sciName,
+                    common_name: plant.commonName,
+                    personal_name: plant.personalName,
+                    location: plant.location,
+                    watering_frequency: plant.watering,
+                    light_requirements: plant.light,
+                    drainage: plant.drainage,
+                    personal_notes: plant.notes,
+                    photo_path: plant.photoPath,
+                    date_added: plant.date
+                  })),
+                  reminders: reminders.map(reminder => ({
+                    id: reminder.id,
+                    plant_id: reminder.plantId,
+                    type: reminder.type,
+                    title: reminder.title,
+                    description: reminder.description,
+                    date: reminder.date,
+                    frequency_days: reminder.frequency,
+                    completed: reminder.completed,
+                    created_at: reminder.createdAt
+                  })),
+                  additional_photos: additionalPhotos.map(photo => ({
+                    id: photo.id,
+                    plant_id: photo.plantId,
+                    plant_personal_name: photo.plantPersonalName,
+                    photo_path: photo.photoPath,
+                    description: photo.description,
+                    upload_date: photo.uploadDate
+                  }))
+                },
+                statistics: {
+                  plants_by_watering: plants.reduce((acc, plant) => {
+                    const watering = plant.watering || 'no_specified';
+                    acc[watering] = (acc[watering] || 0) + 1;
+                    return acc;
+                  }, {}),
+                  plants_by_light: plants.reduce((acc, plant) => {
+                    const light = plant.light || 'no_specified';
+                    acc[light] = (acc[light] || 0) + 1;
+                    return acc;
+                  }, {}),
+                  reminders_by_type: reminders.reduce((acc, reminder) => {
+                    const type = reminder.type || 'other';
+                    acc[type] = (acc[type] || 0) + 1;
+                    return acc;
+                  }, {}),
+                  photos_by_plant: additionalPhotos.reduce((acc, photo) => {
+                    const plantName = photo.plantPersonalName || `Plant_${photo.plantId}`;
+                    acc[plantName] = (acc[plantName] || 0) + 1;
+                    return acc;
+                  }, {}),
+                  oldest_plant: plants.length > 0 ? 
+                    plants.reduce((oldest, plant) => new Date(plant.date) < new Date(oldest.date) ? plant : oldest).date : null,
+                  newest_plant: plants.length > 0 ?
+                    plants.reduce((newest, plant) => new Date(plant.date) > new Date(newest.date) ? plant : newest).date : null
+                }
+              };
+
+              // Configurar headers para descarga
+              const filename = `plantcare_export_${userId.substring(0, 8)}_${timestamp.split('T')[0]}.json`;
+              res.setHeader('Content-Type', 'application/json');
+              res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+              
+              // Enviar datos
+              res.json(exportData);
+            }
+          );
+        }
+      );
+    }
+  );
+});
+
 // DELETE /user/all-data - Eliminar todos los datos del usuario
 app.delete("/user/all-data", authenticateToken, (req, res) => {
   const userId = req.user.uid;
 
   // Primero obtener todas las rutas de fotos del usuario para eliminarlas
-  db.all(
-    "SELECT photoPath FROM plants WHERE userId = ?",
-    [userId],
-    (err, rows) => {
-      if (err) {
-        console.error("Error al obtener rutas de fotos:", err.message);
-        return res.status(500).json({ error: "Error interno del servidor" });
+  // Incluir tanto fotos principales como fotos adicionales
+  const getMainPhotos = new Promise((resolve, reject) => {
+    db.all(
+      "SELECT photoPath FROM plants WHERE userId = ? AND photoPath IS NOT NULL",
+      [userId],
+      (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows.map(row => row.photoPath));
       }
+    );
+  });
+
+  const getAdditionalPhotos = new Promise((resolve, reject) => {
+    db.all(
+      `SELECT pp.photoPath 
+       FROM plant_photos pp 
+       INNER JOIN plants p ON pp.plantId = p.id 
+       WHERE p.userId = ?`,
+      [userId],
+      (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows.map(row => row.photoPath));
+      }
+    );
+  });
+
+  Promise.all([getMainPhotos, getAdditionalPhotos])
+    .then(([mainPhotoPaths, additionalPhotoPaths]) => {
+      // Combinar todas las rutas de fotos
+      const allPhotoPaths = [...mainPhotoPaths, ...additionalPhotoPaths];
+      console.log(`Eliminando ${allPhotoPaths.length} fotos (${mainPhotoPaths.length} principales + ${additionalPhotoPaths.length} adicionales)`);
 
       // Eliminar archivos de fotos
-      const deletePromises = rows.map(row => {
+      const deletePromises = allPhotoPaths.map(photoPath => {
         return new Promise((resolve) => {
-          if (row.photoPath) {
+          if (photoPath) {
             // Extraer solo el nombre del archivo de la URL completa
-            const filename = row.photoPath.split('/').pop();
-            const photoPath = path.join(__dirname, "uploads", filename);
+            const filename = photoPath.split('/').pop();
+            const filePath = path.join(__dirname, "uploads", filename);
             
-            fs.unlink(photoPath, (unlinkErr) => {
+            fs.unlink(filePath, (unlinkErr) => {
               if (unlinkErr && unlinkErr.code !== 'ENOENT') {
                 console.warn(`Error al eliminar foto ${filename}:`, unlinkErr.message);
               }
@@ -804,19 +1218,34 @@ app.delete("/user/all-data", authenticateToken, (req, res) => {
 
                 const deletedReminders = this.changes;
 
-                // Eliminar plantas
+                // Eliminar fotos adicionales (esto también se eliminará por CASCADE, pero lo hacemos explícito)
                 db.run(
-                  "DELETE FROM plants WHERE userId = ?",
+                  `DELETE FROM plant_photos 
+                   WHERE plantId IN (SELECT id FROM plants WHERE userId = ?)`,
                   [userId],
-                  function(plantErr) {
-                    if (plantErr) {
-                      console.error("Error al eliminar plantas:", plantErr.message);
+                  function(photoErr) {
+                    if (photoErr) {
+                      console.error("Error al eliminar fotos adicionales:", photoErr.message);
                       return db.run("ROLLBACK", () => {
-                        res.status(500).json({ error: "Error al eliminar plantas" });
+                        res.status(500).json({ error: "Error al eliminar fotos adicionales" });
                       });
                     }
 
-                    const deletedPlants = this.changes;
+                    const deletedAdditionalPhotos = this.changes;
+
+                    // Eliminar plantas (esto elimina automáticamente recordatorios y fotos por CASCADE)
+                    db.run(
+                      "DELETE FROM plants WHERE userId = ?",
+                      [userId],
+                      function(plantErr) {
+                        if (plantErr) {
+                          console.error("Error al eliminar plantas:", plantErr.message);
+                          return db.run("ROLLBACK", () => {
+                            res.status(500).json({ error: "Error al eliminar plantas" });
+                          });
+                        }
+
+                        const deletedPlants = this.changes;
 
                     // Confirmar transacción
                     db.run("COMMIT", (commitErr) => {
@@ -825,16 +1254,18 @@ app.delete("/user/all-data", authenticateToken, (req, res) => {
                         return res.status(500).json({ error: "Error al confirmar eliminación" });
                       }
 
-                      console.log(`Datos eliminados para usuario ${userId}: ${deletedPlants} plantas, ${deletedReminders} recordatorios`);
+                      console.log(`Datos eliminados para usuario ${userId}: ${deletedPlants} plantas, ${deletedReminders} recordatorios, ${allPhotoPaths.length} fotos`);
                       
                       res.json({
                         success: true,
                         message: "Todos los datos han sido eliminados permanentemente",
                         deletedPlants,
                         deletedReminders,
-                        deletedPhotos: rows.length
+                        deletedPhotos: allPhotoPaths.length
                       });
                     });
+                      }
+                    );
                   }
                 );
               }
@@ -842,8 +1273,11 @@ app.delete("/user/all-data", authenticateToken, (req, res) => {
           });
         });
       });
-    }
-  );
+    })
+    .catch(err => {
+      console.error("Error al obtener rutas de fotos:", err.message);
+      res.status(500).json({ error: "Error interno del servidor" });
+    });
 });
 
 // Limpiar cache cada 24 horas

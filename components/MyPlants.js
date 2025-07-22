@@ -33,7 +33,7 @@ export default function MyPlants({ refreshTrigger }) {
       try {
         setLoading(true);
         const token = await auth.user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001" || "http://192.168.100.35:3000";
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
         const response = await fetch(`${apiUrl}/plants`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -83,7 +83,7 @@ export default function MyPlants({ refreshTrigger }) {
     }
     try {
       const token = await auth.user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       const response = await fetch(`${apiUrl}/plants/${plantId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -205,7 +205,7 @@ export default function MyPlants({ refreshTrigger }) {
                   src={
                     plant.photoPath
                       ? `${
-                          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+                          process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
                         }/uploads/${plant.photoPath.replace(/^uploads[\\/]/, "")}`
                       : "/default-plant.jpg"
                   }

@@ -27,7 +27,7 @@ export default function RecordatoriosUrgentes() {
         setLoading(true);
         setServerError(false);
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
         // Cargar plantas
         const plantsResponse = await fetch(`${apiUrl}/plants`, {
@@ -152,7 +152,7 @@ export default function RecordatoriosUrgentes() {
     if (!user) return;
     try {
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const response = await fetch(`${apiUrl}/reminders/${reminderId}/complete`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }

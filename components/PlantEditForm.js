@@ -73,7 +73,7 @@ export default function PlantEditForm({ plant, onCancel, onPlantEdited }) {
     if (photo) formData.append("photo", photo);
     try {
       const token = await auth.user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       const res = await fetch(`${apiUrl}/plants/${plant.id}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
@@ -118,7 +118,7 @@ export default function PlantEditForm({ plant, onCancel, onPlantEdited }) {
         <div className="flex justify-center items-end gap-4 mb-2">
           {plant.photoPath && !photoPreview && (
             <div className="text-center">
-              <Image src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/uploads/${plant.photoPath}`} alt="Foto actual" width={100} height={100} className="rounded-xl shadow-lg border border-green-200 dark:border-green-700 object-cover" />
+              <Image src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/uploads/${plant.photoPath}`} alt="Foto actual" width={100} height={100} className="rounded-xl shadow-lg border border-green-200 dark:border-green-700 object-cover" />
               <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 block">Actual</span>
             </div>
           )}

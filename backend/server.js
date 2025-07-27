@@ -1375,33 +1375,12 @@ app.get("/api/iot/devices/:udid", authenticateToken, async (req, res) => {
             const errorText = await response.text();
             console.error(`❌ [IoT] API externa respondió con error ${response.status}:`, errorText);
             
-            // Si es 404, mostrar datos mock para desarrollo
-            if (response.status === 404) {
-              console.log(`🛠️ [IoT] Usando datos mock para desarrollo - dispositivo ${udid}`);
-              
-              const mockData = {
-                udid: udid,
-                status: "connected",
-                temperature: Math.round((20 + Math.random() * 10) * 10) / 10, // 20-30°C
-                humidity: Math.round((40 + Math.random() * 30) * 10) / 10,     // 40-70%
-                soil_moisture: Math.round((30 + Math.random() * 40) * 10) / 10, // 30-70%
-                timestamp: new Date().toISOString(),
-                mock: true
-              };
-              
-              res.json({
-                device: device,
-                data: mockData,
-                lastUpdate: new Date().toISOString(),
-                note: "Datos simulados - API externa no disponible (404)"
-              });
-            } else {
-              res.status(503).json({ 
-                error: "Dispositivo IoT no disponible",
-                details: `Status ${response.status}: ${errorText}`,
-                apiUrl: apiUrl
-              });
-            }
+            // Sin datos mockup - solo mostrar error real
+            res.status(503).json({ 
+              error: "Dispositivo IoT no disponible",
+              details: `Status ${response.status}: ${errorText}`,
+              apiUrl: apiUrl
+            });
           }
         } catch (fetchError) {
           console.error(`💥 [IoT] Error conectando con API externa para dispositivo ${udid}:`, fetchError);
@@ -1541,35 +1520,14 @@ app.get("/api/iot/plants/:plantId/sensors", authenticateToken, async (req, res) 
               const errorText = await response.text();
               console.error(`❌ [IoT] Error ${response.status} para dispositivo ${device.udid}:`, errorText);
               
-              // Si es 404, usar datos mock para desarrollo
-              if (response.status === 404) {
-                console.log(`🛠️ [IoT] Usando datos mock para ${device.udid}`);
-                
-                const mockData = {
-                  udid: device.udid,
-                  status: "connected",
-                  temperature: Math.round((20 + Math.random() * 10) * 10) / 10,
-                  humidity: Math.round((40 + Math.random() * 30) * 10) / 10,
-                  soil_moisture: Math.round((30 + Math.random() * 40) * 10) / 10,
-                  timestamp: new Date().toISOString(),
-                  mock: true
-                };
-                
-                sensorsData.push({
-                  device: device,
-                  sensorData: mockData,
-                  lastUpdate: new Date().toISOString(),
-                  note: "Datos simulados - API externa no disponible"
-                });
-              } else {
-                sensorsData.push({
-                  device: device,
-                  sensorData: null,
-                  error: `Dispositivo no disponible (${response.status})`,
-                  errorDetails: errorText,
-                  lastUpdate: new Date().toISOString()
-                });
-              }
+              // Sin datos mockup - solo mostrar error real
+              sensorsData.push({
+                device: device,
+                sensorData: null,
+                error: `Dispositivo no disponible (${response.status})`,
+                errorDetails: errorText,
+                lastUpdate: new Date().toISOString()
+              });
             }
           } catch (error) {
             console.error(`💥 [IoT] Error conectando con dispositivo ${device.udid}:`, error);

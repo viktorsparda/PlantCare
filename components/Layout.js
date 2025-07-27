@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
 import HelpButton from "./HelpButton";
 import { FaSignOutAlt, FaTimes, FaBars, FaHome, FaUser, FaCog, FaQuestionCircle, FaBell, FaImage, FaLeaf } from 'react-icons/fa';
+import { MdSensors } from 'react-icons/md';
 
 function LogoutButton() {
   const { logout } = useAuth();
@@ -97,6 +98,13 @@ export default function Layout({ children, pageTitle }) {
           >
             <FaImage />
             <span>Galería</span>
+          </Link>
+          <Link
+            href="/iot"
+            className="flex items-center gap-2 px-3 py-2 rounded hover:bg-green-100 dark:hover:bg-green-900 font-medium transition-colors"
+          >
+            <MdSensors />
+            <span>IoT</span>
           </Link>
           <Link
             href="/configuracion"

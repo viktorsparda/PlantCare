@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Image from 'next/image';
 import Layout from '../../components/Layout';
 import ConfirmModal from '../../components/ConfirmModal';
+import IoTSensors from '../../components/IoTSensors';
 import toast from 'react-hot-toast';
 import { 
   FiTag, 
@@ -1526,6 +1527,11 @@ export default function PlantDetailPage() {
             )}
           </div>
         )}
+
+        {/* Sección de Sensores IoT */}
+        <div className="mb-6">
+          <IoTSensors plantId={plant?.id} />
+        </div>
 
         {/* Content Grid - Layout en 2 columnas para desktop */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

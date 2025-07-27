@@ -240,6 +240,26 @@ db.serialize(() => {
     )
   `);
   
+  // Crear tabla de dispositivos IoT si no existe
+  db.run(`
+    CREATE TABLE IF NOT EXISTS iot_devices (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      udid TEXT NOT NULL,
+      userId TEXT NOT NULL,
+      plantId INTEGER,
+      deviceName TEXT,
+      associatedAt TEXT,
+      isActive BOOLEAN DEFAULT 1,
+      FOREIGN KEY (plantId) REFERENCES plants (id) ON DELETE SET NULL
+    )
+  `, (err) => {
+    if (err) {
+      console.error("Error creating iot_devices table:", err);
+    } else {
+      console.log("✅ IoT devices table ready");
+    }
+  });
+
   // Agregar columna frequency si no existe (para bases de datos existentes)
   db.run(`
     ALTER TABLE reminders ADD COLUMN frequency INTEGER DEFAULT 7
@@ -1278,6 +1298,202 @@ app.delete("/user/all-data", authenticateToken, (req, res) => {
       console.error("Error al obtener rutas de fotos:", err.message);
       res.status(500).json({ error: "Error interno del servidor" });
     });
+});
+
+// ENDPOINTS IoT - Integración con dispositivos ESP32
+
+// GET /api/iot/devices/:udid - Obtener datos del dispositivo
+app.get("/api/iot/devices/:udid", authenticateToken, async (req, res) => {
+  const { udid } = req.params;
+  const userId = req.user.uid;
+  
+  try {
+    // Verificar que el usuario tiene acceso a este dispositivo
+    db.get(
+      "SELECT * FROM iot_devices WHERE udid = ? AND userId = ?",
+      [udid, userId],
+      async (err, device) => {
+        if (err) {
+          return res.status(500).json({ error: "Error de base de datos" });
+        }
+        
+        if (!device) {
+          return res.status(404).json({ error: "Dispositivo no encontrado o sin acceso" });
+        }
+
+        try {
+          // Obtener datos del dispositivo desde la API externa
+          const response = await fetch(`https://api.drcvault.dev/api/iot/devices/${udid}`);
+          
+          if (response.ok) {
+            const iotData = await response.json();
+            res.json({
+              device: device,
+              data: iotData,
+              lastUpdate: new Date().toISOString()
+            });
+          } else {
+            res.status(503).json({ error: "Dispositivo IoT no disponible" });
+          }
+        } catch (fetchError) {
+          console.error("Error fetching IoT data:", fetchError);
+          res.status(503).json({ error: "Error conectando con dispositivo IoT" });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error fetching IoT data:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// POST /api/iot/associate - Asociar dispositivo IoT con usuario
+app.post("/api/iot/associate", authenticateToken, (req, res) => {
+  const { udid, plantId, deviceName } = req.body;
+  const userId = req.user.uid;
+  
+  if (!udid) {
+    return res.status(400).json({ error: "UDID del dispositivo requerido" });
+  }
+
+  // Verificar que la planta pertenece al usuario (si se especifica)
+  if (plantId) {
+    db.get(
+      "SELECT id FROM plants WHERE id = ? AND userId = ?",
+      [plantId, userId],
+      (err, plant) => {
+        if (err || !plant) {
+          return res.status(404).json({ error: "Planta no encontrada" });
+        }
+        
+        // Continuar con la asociación
+        createDeviceAssociation();
+      }
+    );
+  } else {
+    createDeviceAssociation();
+  }
+
+  function createDeviceAssociation() {
+    db.run(
+      `INSERT OR REPLACE INTO iot_devices (udid, userId, plantId, deviceName, associatedAt) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [udid, userId, plantId, deviceName || `Sensor-${udid.slice(-4)}`, new Date().toISOString()],
+      function (err) {
+        if (err) {
+          console.error("Error associating device:", err);
+          return res.status(500).json({ error: "Error asociando dispositivo" });
+        }
+        
+        res.json({
+          id: this.lastID,
+          message: "Dispositivo asociado exitosamente",
+          udid: udid
+        });
+      }
+    );
+  }
+});
+
+// GET /api/iot/plants/:plantId/sensors - Obtener datos de sensores para una planta
+app.get("/api/iot/plants/:plantId/sensors", authenticateToken, async (req, res) => {
+  const { plantId } = req.params;
+  const userId = req.user.uid;
+  
+  try {
+    // Obtener dispositivos asociados a la planta
+    db.all(
+      `SELECT * FROM iot_devices 
+       WHERE plantId = ? AND userId = ? AND isActive = 1`,
+      [plantId, userId],
+      async (err, devices) => {
+        if (err) {
+          return res.status(500).json({ error: "Error de base de datos" });
+        }
+
+        const sensorsData = [];
+        
+        for (const device of devices) {
+          try {
+            const response = await fetch(`https://api.drcvault.dev/api/iot/devices/${device.udid}`);
+            if (response.ok) {
+              const data = await response.json();
+              sensorsData.push({
+                device: device,
+                sensorData: data,
+                lastUpdate: new Date().toISOString()
+              });
+            } else {
+              sensorsData.push({
+                device: device,
+                sensorData: null,
+                error: "Dispositivo no disponible",
+                lastUpdate: new Date().toISOString()
+              });
+            }
+          } catch (error) {
+            console.error(`Error fetching data for device ${device.udid}:`, error);
+            sensorsData.push({
+              device: device,
+              sensorData: null,
+              error: "Error de conexión",
+              lastUpdate: new Date().toISOString()
+            });
+          }
+        }
+        
+        res.json(sensorsData);
+      }
+    );
+  } catch (error) {
+    console.error("Error fetching sensors data:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// GET /api/iot/devices - Listar todos los dispositivos del usuario
+app.get("/api/iot/devices", authenticateToken, (req, res) => {
+  const userId = req.user.uid;
+  
+  db.all(
+    `SELECT d.*, p.personalName as plantName, p.commonName as plantCommonName 
+     FROM iot_devices d 
+     LEFT JOIN plants p ON d.plantId = p.id 
+     WHERE d.userId = ? AND d.isActive = 1 
+     ORDER BY d.associatedAt DESC`,
+    [userId],
+    (err, devices) => {
+      if (err) {
+        console.error("Error fetching devices:", err);
+        return res.status(500).json({ error: "Error de base de datos" });
+      }
+      
+      res.json(devices);
+    }
+  );
+});
+
+// DELETE /api/iot/devices/:id - Eliminar dispositivo IoT
+app.delete("/api/iot/devices/:id", authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.uid;
+  
+  db.run(
+    "UPDATE iot_devices SET isActive = 0 WHERE id = ? AND userId = ?",
+    [id, userId],
+    function (err) {
+      if (err) {
+        console.error("Error deleting device:", err);
+        return res.status(500).json({ error: "Error eliminando dispositivo" });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: "Dispositivo no encontrado" });
+      }
+      
+      res.json({ message: "Dispositivo eliminado exitosamente" });
+    }
+  );
 });
 
 // Limpiar cache cada 24 horas

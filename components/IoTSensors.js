@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { FaThermometerHalf, FaTint, FaSeedling, FaWifi, FaExclamationTriangle } from 'react-icons/fa';
 import { MdSensors } from 'react-icons/md';
@@ -10,17 +10,7 @@ export default function IoTSensors({ plantId }) {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (!user || !plantId) return;
-    
-    loadSensorsData();
-    
-    // Actualizar datos cada 30 segundos
-    const interval = setInterval(loadSensorsData, 30000);
-    return () => clearInterval(interval);
-  }, [user, plantId]);
-
-  const loadSensorsData = async () => {
+  const loadSensorsData = useCallback(async () => {
     try {
       const token = await user.getIdToken();
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -42,7 +32,17 @@ export default function IoTSensors({ plantId }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, plantId]);
+
+  useEffect(() => {
+    if (!user || !plantId) return;
+    
+    loadSensorsData();
+    
+    // Actualizar datos cada 30 segundos
+    const interval = setInterval(loadSensorsData, 30000);
+    return () => clearInterval(interval);
+  }, [user, plantId, loadSensorsData]);
 
   const getSensorIcon = (type) => {
     switch (type) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import { MdSensors, MdAdd, MdDelete, MdRefresh } from 'react-icons/md';
@@ -17,13 +17,7 @@ export default function IoTPage() {
   });
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const token = await user.getIdToken();
@@ -55,7 +49,13 @@ export default function IoTPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, loadData]);
 
   const handleAddDevice = async (e) => {
     e.preventDefault();
@@ -173,10 +173,10 @@ export default function IoTPage() {
               <p>3. Ejecuta el comando para asociar tu email:</p>
               <div className="bg-blue-100 dark:bg-blue-800 p-3 rounded mt-2 text-xs font-mono">
                 <div>curl -X POST https://api.drcvault.dev/api/iot/share \</div>
-                <div>&nbsp;&nbsp;-H "Content-Type: application/json" \</div>
-                <div>&nbsp;&nbsp;-d '{`{"udid": "ESP-xxxxxxxx", "email": "${user?.email || 'tu-email@correo.com'}"}`}'</div>
+                <div>&nbsp;&nbsp;-H &quot;Content-Type: application/json&quot; \</div>
+                <div>&nbsp;&nbsp;-d &apos;{JSON.stringify({udid: "ESP-xxxxxxxx", email: user?.email || "tu-email@correo.com"})}&apos;</div>
               </div>
-              <p>4. Asocia el dispositivo con una planta usando el botón "Agregar Dispositivo"</p>
+              <p>4. Asocia el dispositivo con una planta usando el botón &quot;Agregar Dispositivo&quot;</p>
               <button
                 onClick={shareDeviceWithEmail}
                 className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"

@@ -12,23 +12,34 @@ export default function IoTSensors({ plantId }) {
 
   const loadSensorsData = useCallback(async () => {
     try {
+      console.log(`🔍 [IoT Frontend] Cargando sensores para planta ${plantId}`);
+      
       const token = await user.getIdToken();
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const requestUrl = `${apiUrl}/api/iot/plants/${plantId}/sensors`;
       
-      const response = await fetch(`${apiUrl}/api/iot/plants/${plantId}/sensors`, {
+      console.log(`🌐 [IoT Frontend] Solicitando: ${requestUrl}`);
+      
+      const response = await fetch(requestUrl, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
+      console.log(`📡 [IoT Frontend] Respuesta: Status ${response.status}`);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log(`✅ [IoT Frontend] Datos recibidos:`, data);
+        
         setSensorsData(data);
         setError(null);
       } else {
-        setError('Error al cargar datos de sensores');
+        const errorText = await response.text();
+        console.error(`❌ [IoT Frontend] Error ${response.status}:`, errorText);
+        setError(`Error al cargar datos de sensores (${response.status})`);
       }
     } catch (err) {
-      console.error('Error loading sensors:', err);
-      setError('Error de conexión con sensores IoT');
+      console.error('💥 [IoT Frontend] Error loading sensors:', err);
+      setError(`Error de conexión con sensores IoT: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -178,8 +189,22 @@ export default function IoTSensors({ plantId }) {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                  {deviceData.error || 'Datos no disponibles'}
+                <div className="text-center py-4">
+                  <div className="text-gray-500 dark:text-gray-400 mb-2">
+                    {deviceData.error || 'Datos no disponibles'}
+                  </div>
+                  {deviceData.errorDetails && (
+                    <details className="text-xs text-gray-400 dark:text-gray-500">
+                      <summary className="cursor-pointer hover:text-gray-600 dark:hover:text-gray-300">
+                        Ver detalles del error
+                      </summary>
+                      <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded text-left">
+                        <strong>UDID:</strong> {deviceData.device.udid}<br/>
+                        <strong>Error:</strong> {deviceData.errorDetails}<br/>
+                        <strong>API URL:</strong> https://api.drcvault.dev/api/iot/devices/{deviceData.device.udid}
+                      </div>
+                    </details>
+                  )}
                 </div>
               )}
 

@@ -174,7 +174,7 @@ export default function IoTPage() {
               <div className="bg-blue-100 dark:bg-blue-800 p-3 rounded mt-2 text-xs font-mono">
                 <div>curl -X POST https://api.drcvault.dev/api/iot/share \</div>
                 <div>&nbsp;&nbsp;-H &quot;Content-Type: application/json&quot; \</div>
-                <div>&nbsp;&nbsp;-d &apos;{JSON.stringify({udid: "ESP-xxxxxxxx", email: user?.email || "tu-email@correo.com"})}&apos;</div>
+                <div>&nbsp;&nbsp;-d &apos;{`{"udid": "ESP-xxxxxxxx", "email": "${user?.email || "tu-email@correo.com"}"}`}&apos;</div>
               </div>
               <p>4. Asocia el dispositivo con una planta usando el botón &quot;Agregar Dispositivo&quot;</p>
               <button

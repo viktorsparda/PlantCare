@@ -1307,6 +1307,8 @@ app.get("/api/iot/devices/:udid", authenticateToken, async (req, res) => {
   const { udid } = req.params;
   const userId = req.user.uid;
   
+  console.log(`🔍 [IoT] Solicitando datos para dispositivo: ${udid} por usuario: ${userId}`);
+  
   try {
     // Verificar que el usuario tiene acceso a este dispositivo
     db.get(
@@ -1314,35 +1316,107 @@ app.get("/api/iot/devices/:udid", authenticateToken, async (req, res) => {
       [udid, userId],
       async (err, device) => {
         if (err) {
+          console.error(`❌ [IoT] Error de BD consultando dispositivo ${udid}:`, err);
           return res.status(500).json({ error: "Error de base de datos" });
         }
         
         if (!device) {
+          console.log(`⚠️ [IoT] Dispositivo ${udid} no encontrado o sin acceso para usuario ${userId}`);
           return res.status(404).json({ error: "Dispositivo no encontrado o sin acceso" });
         }
 
+        console.log(`✅ [IoT] Dispositivo encontrado en BD:`, device);
+
         try {
+          // Usar el endpoint correcto para obtener el último log del dispositivo
+          const apiUrl = `https://api.drcvault.dev/api/logs/device/${udid}?latest=true`;
+          console.log(`🌐 [IoT] Consultando API externa: ${apiUrl}`);
+          
           // Obtener datos del dispositivo desde la API externa
-          const response = await fetch(`https://api.drcvault.dev/api/iot/devices/${udid}`);
+          const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'PlantCare-Backend/1.0'
+            }
+          });
+          
+          console.log(`📡 [IoT] Respuesta de API externa - Status: ${response.status}, Headers:`, Object.fromEntries(response.headers));
           
           if (response.ok) {
-            const iotData = await response.json();
+            const apiData = await response.json();
+            console.log(`✅ [IoT] Datos recibidos de API externa:`, apiData);
+            
+            // Transformar los datos al formato esperado por el frontend
+            const iotData = Array.isArray(apiData) && apiData.length > 0 ? {
+              udid: udid,
+              status: "connected",
+              temperature: apiData[0].temp,
+              humidity: apiData[0].moisture_air,
+              soil_moisture: apiData[0].moisture_dirt,
+              timestamp: apiData[0].timestamp,
+              raw_data: apiData[0]
+            } : {
+              udid: udid,
+              status: "no_data",
+              temperature: null,
+              humidity: null,
+              soil_moisture: null,
+              timestamp: new Date().toISOString(),
+              error: "No hay datos disponibles"
+            };
+            
             res.json({
               device: device,
               data: iotData,
               lastUpdate: new Date().toISOString()
             });
           } else {
-            res.status(503).json({ error: "Dispositivo IoT no disponible" });
+            const errorText = await response.text();
+            console.error(`❌ [IoT] API externa respondió con error ${response.status}:`, errorText);
+            
+            // Si es 404, mostrar datos mock para desarrollo
+            if (response.status === 404) {
+              console.log(`🛠️ [IoT] Usando datos mock para desarrollo - dispositivo ${udid}`);
+              
+              const mockData = {
+                udid: udid,
+                status: "connected",
+                temperature: Math.round((20 + Math.random() * 10) * 10) / 10, // 20-30°C
+                humidity: Math.round((40 + Math.random() * 30) * 10) / 10,     // 40-70%
+                soil_moisture: Math.round((30 + Math.random() * 40) * 10) / 10, // 30-70%
+                timestamp: new Date().toISOString(),
+                mock: true
+              };
+              
+              res.json({
+                device: device,
+                data: mockData,
+                lastUpdate: new Date().toISOString(),
+                note: "Datos simulados - API externa no disponible (404)"
+              });
+            } else {
+              res.status(503).json({ 
+                error: "Dispositivo IoT no disponible",
+                details: `Status ${response.status}: ${errorText}`,
+                apiUrl: apiUrl
+              });
+            }
           }
         } catch (fetchError) {
-          console.error("Error fetching IoT data:", fetchError);
-          res.status(503).json({ error: "Error conectando con dispositivo IoT" });
+          console.error(`💥 [IoT] Error conectando con API externa para dispositivo ${udid}:`, fetchError);
+          console.error(`💥 [IoT] Stack trace:`, fetchError.stack);
+          
+          res.status(503).json({ 
+            error: "Error conectando con dispositivo IoT",
+            details: fetchError.message,
+            type: fetchError.name
+          });
         }
       }
     );
   } catch (error) {
-    console.error("Error fetching IoT data:", error);
+    console.error(`💥 [IoT] Error general en endpoint devices/${udid}:`, error);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
@@ -1400,6 +1474,8 @@ app.get("/api/iot/plants/:plantId/sensors", authenticateToken, async (req, res) 
   const { plantId } = req.params;
   const userId = req.user.uid;
   
+  console.log(`🌱 [IoT] Solicitando sensores para planta ${plantId} por usuario ${userId}`);
+  
   try {
     // Obtener dispositivos asociados a la planta
     db.all(
@@ -1408,45 +1484,112 @@ app.get("/api/iot/plants/:plantId/sensors", authenticateToken, async (req, res) 
       [plantId, userId],
       async (err, devices) => {
         if (err) {
+          console.error(`❌ [IoT] Error de BD consultando dispositivos para planta ${plantId}:`, err);
           return res.status(500).json({ error: "Error de base de datos" });
         }
+
+        console.log(`📋 [IoT] Dispositivos encontrados para planta ${plantId}:`, devices.length, devices);
 
         const sensorsData = [];
         
         for (const device of devices) {
+          console.log(`🔄 [IoT] Procesando dispositivo ${device.udid} para planta ${plantId}`);
+          
           try {
-            const response = await fetch(`https://api.drcvault.dev/api/iot/devices/${device.udid}`);
+            const apiUrl = `https://api.drcvault.dev/api/logs/device/${device.udid}?latest=true`;
+            console.log(`🌐 [IoT] Consultando: ${apiUrl}`);
+            
+            const response = await fetch(apiUrl, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'PlantCare-Backend/1.0'
+              }
+            });
+            
+            console.log(`📡 [IoT] Respuesta para ${device.udid} - Status: ${response.status}`);
+            
             if (response.ok) {
-              const data = await response.json();
+              const apiData = await response.json();
+              console.log(`✅ [IoT] Datos recibidos para ${device.udid}:`, apiData);
+              
+              // Transformar los datos al formato esperado
+              const sensorData = Array.isArray(apiData) && apiData.length > 0 ? {
+                udid: device.udid,
+                status: "connected",
+                temperature: apiData[0].temp,
+                humidity: apiData[0].moisture_air,
+                soil_moisture: apiData[0].moisture_dirt,
+                timestamp: apiData[0].timestamp,
+                raw_data: apiData[0]
+              } : {
+                udid: device.udid,
+                status: "no_data",
+                temperature: null,
+                humidity: null,
+                soil_moisture: null,
+                timestamp: new Date().toISOString(),
+                error: "No hay datos disponibles"
+              };
+              
               sensorsData.push({
                 device: device,
-                sensorData: data,
+                sensorData: sensorData,
                 lastUpdate: new Date().toISOString()
               });
             } else {
-              sensorsData.push({
-                device: device,
-                sensorData: null,
-                error: "Dispositivo no disponible",
-                lastUpdate: new Date().toISOString()
-              });
+              const errorText = await response.text();
+              console.error(`❌ [IoT] Error ${response.status} para dispositivo ${device.udid}:`, errorText);
+              
+              // Si es 404, usar datos mock para desarrollo
+              if (response.status === 404) {
+                console.log(`🛠️ [IoT] Usando datos mock para ${device.udid}`);
+                
+                const mockData = {
+                  udid: device.udid,
+                  status: "connected",
+                  temperature: Math.round((20 + Math.random() * 10) * 10) / 10,
+                  humidity: Math.round((40 + Math.random() * 30) * 10) / 10,
+                  soil_moisture: Math.round((30 + Math.random() * 40) * 10) / 10,
+                  timestamp: new Date().toISOString(),
+                  mock: true
+                };
+                
+                sensorsData.push({
+                  device: device,
+                  sensorData: mockData,
+                  lastUpdate: new Date().toISOString(),
+                  note: "Datos simulados - API externa no disponible"
+                });
+              } else {
+                sensorsData.push({
+                  device: device,
+                  sensorData: null,
+                  error: `Dispositivo no disponible (${response.status})`,
+                  errorDetails: errorText,
+                  lastUpdate: new Date().toISOString()
+                });
+              }
             }
           } catch (error) {
-            console.error(`Error fetching data for device ${device.udid}:`, error);
+            console.error(`💥 [IoT] Error conectando con dispositivo ${device.udid}:`, error);
+            
             sensorsData.push({
               device: device,
               sensorData: null,
               error: "Error de conexión",
+              errorDetails: error.message,
               lastUpdate: new Date().toISOString()
             });
           }
         }
         
+        console.log(`📤 [IoT] Enviando respuesta para planta ${plantId}:`, sensorsData);
         res.json(sensorsData);
       }
     );
   } catch (error) {
-    console.error("Error fetching sensors data:", error);
+    console.error(`💥 [IoT] Error general en sensors para planta ${plantId}:`, error);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
